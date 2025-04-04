@@ -1,21 +1,33 @@
+// pages/api/report.js
 export default async function handler(req, res) {
-  if (req.method !== 'POST') return res.status(405).end();
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Only POST allowed' });
+  }
 
-  try {
-    const { name, message } = req.body;
+  const { name, wallet, message, txHash, chain, method } = req.body;
 
-    const botToken = '8168730814:AAF-mLJzmb7144fFCn_eUanFUgQVO4vLZWY';
-    const chatId = '6596394016';
+  const botToken = process.env.VITE_TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.VITE_TELEGRAM_CHAT_ID;
 
-    const text = `
-📝 *New Recovery Report Submitted!*
+  if (!botToken || !chatId) {
+    return res.status(500).json({ error: 'Missing Telegram credentials in env' });
+  }
 
-👤 *Name:* ${name}
-💬 *Message:* ${message}
-🕐 *Time:* ${new Date().toISOString()}
+  const text = `
+🚨 *New Crypto Report Submission*
+------------------------------
+🧾 *Name:* ${name || 'N/A'}
+💼 *Wallet:* ${wallet || 'N/A'}
+📝 *Message:* ${message || 'None'}
+🔗 *Tx Hash:* ${txHash || 'N/A'}
+🌐 *Chain:* ${chain || 'N/A'}
+🛠 *Method:* ${method || 'N/A'}
 `;
 
-    const telegramRes = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+  const telegramURL = `https://api.telegram.org/bot${botToken}/sendMessage`;
+
+  try {
+    const telegramRes = await fetch(telegramURL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -25,11 +37,10 @@ export default async function handler(req, res) {
       }),
     });
 
-    if (!telegramRes.ok) throw new Error('Failed to send to Telegram');
-
-    return res.status(200).json({ sent: true });
-  } catch (error) {
-    console.error('Report submission error:', error);
-    return res.status(500).json({ error: 'Failed to submit report' });
+    if (!telegramRes.ok) throw new Error('Telegram API failed');
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    console.error('Telegram Error:', err);
+    return res.status(500).json({ error: 'Failed to send to Telegram' });
   }
 }
