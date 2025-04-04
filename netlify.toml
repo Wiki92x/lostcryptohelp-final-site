@@ -1,17 +1,21 @@
 [build]
-command = "npm run build"
-publish = ".next"
-node_version = "18"
+  command = "npm run build"
+  publish = ".next"
+  node_version = "18"
 
 [context.production.environment]
-ETHERSCAN_API_KEY = "your-key"
-BSCSCAN_API_KEY = "your-key"
-TRONSCAN_API_KEY = "your-key"
-VITE_TELEGRAM_BOT_TOKEN = "your-key"
-VITE_TELEGRAM_CHAT_ID = "your-id"
-VERIFY_ETH_ADDRESS = "0x6a160Bb6a9Bea759b43De6ce735978992ad81b7D"
-VERIFY_BNB_ADDRESS = "0x6a160Bb6a9Bea759b43De6ce735978992ad81b7D"
-VERIFY_TRON_ADDRESS = "TM6HGn9p9ZEo525PATPZanYCA4W9nQezTv"
+  ETHERSCAN_API_KEY = "your-key"
+  BSCSCAN_API_KEY = "your-key"
+  TRONSCAN_API_KEY = "your-key"
+  VITE_TELEGRAM_BOT_TOKEN = "your-key"
+  VITE_TELEGRAM_CHAT_ID = "your-id"
+  VERIFY_ETH_ADDRESS = "0x6a160Bb6a9Bea759b43De6ce735978992ad81b7D"
+  VERIFY_BNB_ADDRESS = "0x6a160Bb6a9Bea759b43De6ce735978992ad81b7D"
+  VERIFY_TRON_ADDRESS = "TM6HGn9p9ZEo525PATPZanYCA4W9nQezTv"
 
 [[plugins]]
-package = "@netlify/plugin-nextjs"
+  package = "@netlify/plugin-nextjs"
+
+[build.rollupOptions.external]
+  - react
+  - react-dom
