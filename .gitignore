@@ -1,23 +1,13 @@
 # dependencies
-/node_modules
-/.pnp
-.pnp.js
-
-# testing
-/coverage
-
-# next.js
-/.next/
+node_modules/
+.next/
 /out/
-
-# production
-/build
 
 # misc
 .DS_Store
 *.pem
 
-# debug
+# debug logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
@@ -25,9 +15,17 @@ yarn-error.log*
 # local env files
 .env*.local
 .env
-# vercel
+
 # IDE
-.vscode/.idea/
+.vscode/
+.idea/
 
 # vercel
-.vercel
+.vercel/
+
+# build output
+build/
+dist/
+
+# cache
+.cache/
