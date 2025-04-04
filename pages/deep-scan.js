@@ -1,93 +1,69 @@
-// pages/api/verify.js
-import fetch from 'node-fetch';
+import { useState } from 'react';
+import Head from 'next/head';
 
-const RECEIVER_ADDRESS = {
-  eth: process.env.VERIFY_ETH_ADDRESS,
-  bsc: process.env.VERIFY_BNB_ADDRESS,
-  tron: process.env.VERIFY_TRON_ADDRESS,
-};
+export default function DeepScanPage() {
+  const [wallet, setWallet] = useState('');
+  const [scanning, setScanning] = useState(false);
+  const [result, setResult] = useState(null);
 
-const REQUIRED_USD = {
-  eth: 1.5,
-  bsc: 0.5,
-  tron: 0.5,
-};
-
-const ETHERSCAN_API = process.env.ETHERSCAN_API_KEY;
-const BSCSCAN_API = process.env.BSCSCAN_API_KEY;
-const TRONSCAN_API = process.env.TRONSCAN_API_KEY;
-
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Only POST allowed' });
-  }
-
-  const { txHash, chain } = req.body;
-  if (!txHash || !chain) {
-    return res.status(400).json({ error: 'Missing txHash or chain' });
-  }
-
-  const lowerChain = chain.toLowerCase();
-  let priceUSD = 0;
-  let requiredAmount = 0;
-  let paidAmount = 0;
-  let isPaid = false;
-
-  try {
-    // STEP 1: Fetch live price
-    if (lowerChain === 'eth') {
-      const resETH = await fetch(`https://api.etherscan.io/api?module=stats&action=ethprice&apikey=${ETHERSCAN_API}`);
-      const { result } = await resETH.json();
-      priceUSD = parseFloat(result.ethusd);
-    } else if (lowerChain === 'bsc') {
-      const resBSC = await fetch(`https://api.bscscan.com/api?module=stats&action=bnbprice&apikey=${BSCSCAN_API}`);
-      const { result } = await resBSC.json();
-      priceUSD = parseFloat(result.ethusd);
-    } else if (lowerChain === 'tron') {
-      const resTRON = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=tron&vs_currencies=usd');
-      const data = await resTRON.json();
-      priceUSD = parseFloat(data.tron.usd);
-    } else {
-      return res.status(400).json({ error: 'Unsupported chain' });
+  const handleScan = async () => {
+    if (!wallet) return;
+    
+    setScanning(true);
+    try {
+      const res = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallet }),
+      });
+      const data = await res.json();
+      setResult(data);
+    } catch (error) {
+      console.error('Scan error:', error);
+    } finally {
+      setScanning(false);
     }
+  };
 
-    // STEP 2: Fetch transaction details
-    if (lowerChain === 'eth') {
-      const txRes = await fetch(`https://api.etherscan.io/api?module=account&action=txlist&address=${RECEIVER_ADDRESS.eth}&apikey=${ETHERSCAN_API}`);
-      const { result } = await txRes.json();
-      const tx = result.find((t) => t.hash === txHash);
-      if (tx && tx.to.toLowerCase() === RECEIVER_ADDRESS.eth.toLowerCase()) {
-        paidAmount = parseFloat(tx.value) / 1e18;
-      }
-    } else if (lowerChain === 'bsc') {
-      const txRes = await fetch(`https://api.bscscan.com/api?module=account&action=txlist&address=${RECEIVER_ADDRESS.bsc}&apikey=${BSCSCAN_API}`);
-      const { result } = await txRes.json();
-      const tx = result.find((t) => t.hash === txHash);
-      if (tx && tx.to.toLowerCase() === RECEIVER_ADDRESS.bsc.toLowerCase()) {
-        paidAmount = parseFloat(tx.value) / 1e18;
-      }
-    } else if (lowerChain === 'tron') {
-      const txRes = await fetch(`https://api.trongrid.io/v1/transactions/${txHash}`);
-      const data = await txRes.json();
-      const tx = data.data[0];
-      if (tx && tx.raw_data.contract[0].parameter.value.contract_address.toLowerCase() === RECEIVER_ADDRESS.tron.toLowerCase()) {
-        paidAmount = parseFloat(tx.raw_data.contract[0].parameter.value.amount) / 1e6;
-      }
-    }
+  return (
+    <>
+      <Head>
+        <title>Deep Scan | LostCryptoHelp</title>
+        <meta name="description" content="Deep scan wallet addresses for potential crypto scams" />
+      </Head>
 
-    // STEP 3: Fee validation
-    requiredAmount = +(REQUIRED_USD[lowerChain] / priceUSD).toFixed(6);
-    isPaid = paidAmount >= requiredAmount;
+      <div className="max-w-4xl mx-auto py-12 px-4">
+        <h1 className="text-3xl font-bold mb-8">Deep Wallet Scanner</h1>
+        
+        <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
+          <div className="mb-6">
+            <label className="block mb-2">Wallet Address</label>
+            <input
+              type="text"
+              value={wallet}
+              onChange={(e) => setWallet(e.target.value)}
+              placeholder="Enter ETH, BSC, or TRON address"
+              className="w-full p-3 border rounded-md"
+            />
+          </div>
 
-    return res.status(200).json({
-      success: isPaid,
-      paidAmount,
-      requiredAmount,
-      token: lowerChain.toUpperCase(),
-      usdFee: REQUIRED_USD[lowerChain],
-    });
-  } catch (error) {
-    console.error('Verification Error:', error);
-    return res.status(500).json({ error: 'Verification failed' });
-  }
+          <button
+            onClick={handleScan}
+            disabled={scanning || !wallet}
+            className="w-full bg-purple-600 text-white py-3 rounded-md hover:bg-purple-700 disabled:opacity-50"
+          >
+            {scanning ? 'Scanning...' : 'Start Deep Scan'}
+          </button>
+
+          {result && (
+            <div className="mt-6 p-4 border rounded-md">
+              <pre className="whitespace-pre-wrap overflow-x-auto">
+                {JSON.stringify(result, null, 2)}
+              </pre>
+            </div>
+          )}
+        </div>
+      </div>
+    </>
+  );
 }
