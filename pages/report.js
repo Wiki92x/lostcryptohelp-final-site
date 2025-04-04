@@ -1,46 +1,114 @@
-// components/ReportForm.jsx
-import { useState } from 'react';
+// pages/report.js
+import { useState, useEffect } from 'react';
+import ReportForm from '../components/ReportForm';
 
-export default function ReportForm({ txHash, chain, method }) {
-  const [wallet, setWallet] = useState('');
-  const [description, setDescription] = useState('');
+export default function ReportPage() {
+  const [formUnlocked, setFormUnlocked] = useState(false);
+  const [txHash, setTxHash] = useState('');
+  const [chain, setChain] = useState('ETH'); // default chain
+  const [verified, setVerified] = useState(false);
+  const [telegramAlertsEnabled, setTelegramAlertsEnabled] = useState(true);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    const saved = localStorage.getItem('telegramAlerts');
+    setTelegramAlertsEnabled(saved !== 'false');
+  }, []);
 
-    // Handle the actual form submission logic
-    console.log('Submitted:', { wallet, description, txHash, chain, method });
+  const handleVerify = async () => {
+    if (!txHash || !chain) {
+      alert('Please enter both transaction hash and chain.');
+      return;
+    }
+
+    try {
+      const res = await fetch('/api/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ txHash, chain }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setVerified(true);
+        setFormUnlocked(true);
+        alert('Payment verified. You may now submit the report.');
+      } else {
+        alert('Verification failed. You may use manual unlock.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error verifying payment.');
+    }
+  };
+
+  const handleManualUnlock = () => {
+    setFormUnlocked(true);
+    setVerified(false);
+  };
+
+  const handleToggle = () => {
+    const newVal = !telegramAlertsEnabled;
+    setTelegramAlertsEnabled(newVal);
+    localStorage.setItem('telegramAlerts', newVal);
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="mt-8 space-y-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md transition-colors"
-    >
-      <input
-        type="text"
-        placeholder="Your Wallet Address"
-        value={wallet}
-        onChange={(e) => setWallet(e.target.value)}
-        className="w-full p-3 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
-        required
-      />
+    <div className="min-h-screen bg-white text-black dark:bg-gray-900 dark:text-white p-8">
+      <h1 className="text-2xl font-bold mb-4">Report Page</h1>
 
-      <textarea
-        placeholder="Describe what happened..."
-        value={description}
-        onChange={(e) => setDescription(e.target.value)}
-        rows={4}
-        className="w-full p-3 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
-        required
-      />
+      <div className="space-y-4 max-w-xl">
+        <div>
+          <input
+            value={txHash}
+            onChange={(e) => setTxHash(e.target.value)}
+            className="w-full p-2 border border-purple-500 rounded dark:bg-gray-800 dark:text-white"
+            placeholder="Enter transaction hash"
+          />
+        </div>
 
-      <button
-        type="submit"
-        className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-md transition"
-      >
-        Submit Report
-      </button>
-    </form>
+        <div>
+          <select
+            value={chain}
+            onChange={(e) => setChain(e.target.value)}
+            className="w-full p-2 border border-purple-500 rounded dark:bg-gray-800 dark:text-white"
+          >
+            <option value="ETH">Ethereum</option>
+            <option value="BNB">BNB Smart Chain</option>
+            <option value="TRON">TRON (TRC-20)</option>
+          </select>
+        </div>
+
+        <div className="flex gap-4">
+          <button onClick={handleVerify} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
+            Verify Payment
+          </button>
+          <button onClick={handleManualUnlock} className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">
+            Manual Unlock
+          </button>
+        </div>
+
+        <div>
+          <label className="inline-flex items-center">
+            <input
+              type="checkbox"
+              checked={telegramAlertsEnabled}
+              onChange={handleToggle}
+              className="form-checkbox h-5 w-5 text-purple-600"
+            />
+            <span className="ml-2">Enable Telegram alerts</span>
+          </label>
+        </div>
+      </div>
+
+      {formUnlocked && (
+        <div className="mt-8">
+          <ReportForm
+            txHash={txHash}
+            chain={chain}
+            method={verified ? '✅ Verified' : '🔓 Manual Unlock'}
+          />
+        </div>
+      )}
+    </div>
   );
 }
