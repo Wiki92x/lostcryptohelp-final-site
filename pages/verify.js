@@ -2,82 +2,56 @@
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Only POST method allowed' });
+    return res.status(405).json({ error: 'Method not allowed' });
   }
 
-  const { txHash, chain } = req.body;
-
-  if (!txHash || !chain) {
-    return res.status(400).json({ error: 'Missing txHash or chain' });
+  const { txHash, network } = req.body;
+  if (!txHash || !network) {
+    return res.status(400).json({ error: 'Missing transaction hash or network' });
   }
 
-  let isValid = false;
+  const chain = network.toLowerCase();
+  const ethOrBnbAddress = '0x6a160Bb6a9Bea759b43De6ce735978992ad81b7D'.toLowerCase();
+  const tronAddress = 'TM6HGn9p9ZEo525PATPZanYCA4W9nQezTv';
 
   try {
-    if (chain === 'ETH') {
-      const ETHERSCAN_API = process.env.ETHERSCAN_API_KEY;
-      const VERIFY_ADDRESS = process.env.VERIFY_ETH_ADDRESS;
-
-      const response = await fetch(`https://api.etherscan.io/api?module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=${ETHERSCAN_API}`);
+    if (chain === 'tron') {
+      const url = `https://apilist.tronscanapi.com/api/transaction-info?hash=${txHash}`;
+      const response = await fetch(url);
       const data = await response.json();
-
-      const txDetails = await fetch(`https://api.etherscan.io/api?module=account&action=txlistinternal&txhash=${txHash}&apikey=${ETHERSCAN_API}`);
-      const txData = await txDetails.json();
-
-      if (data.result?.status === '1' && txData.result?.[0]?.to?.toLowerCase() === VERIFY_ADDRESS.toLowerCase()) {
-        isValid = true;
+      if (data && data.contractRet === 'SUCCESS' && data.toAddress === tronAddress) {
+        return res.status(200).json({ verified: true });
+      } else {
+        throw new Error('TRON transaction not valid or not sent to correct address');
       }
     }
 
-    if (chain === 'BNB') {
-      const BSC_API = process.env.BSCSCAN_API_KEY;
-      const VERIFY_ADDRESS = process.env.VERIFY_BNB_ADDRESS;
-
-      const response = await fetch(`https://api.bscscan.com/api?module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=${BSC_API}`);
+    if (chain === 'bsc') {
+      const url = `https://api.bscscan.com/api?module=proxy&action=eth_getTransactionByHash&txhash=${txHash}&apikey=UHDMFCT2K6CUAY28PJ2VP43U582EM9KSNB`;
+      const response = await fetch(url);
       const data = await response.json();
-
-      const txDetails = await fetch(`https://api.bscscan.com/api?module=account&action=txlistinternal&txhash=${txHash}&apikey=${BSC_API}`);
-      const txData = await txDetails.json();
-
-      if (data.result?.status === '1' && txData.result?.[0]?.to?.toLowerCase() === VERIFY_ADDRESS.toLowerCase()) {
-        isValid = true;
+      const tx = data.result;
+      if (tx && tx.to && tx.to.toLowerCase() === ethOrBnbAddress) {
+        return res.status(200).json({ verified: true });
+      } else {
+        throw new Error('BSC transaction not valid or not sent to correct address');
       }
     }
 
-    if (chain === 'TRON') {
-      const TRON_API = process.env.TRONSCAN_API_KEY;
-      const VERIFY_ADDRESS = process.env.VERIFY_TRON_ADDRESS;
-
-      const response = await fetch(`https://api.trongrid.io/v1/transactions/${txHash}`, {
-        headers: { 'TRON-PRO-API-KEY': TRON_API }
-      });
+    if (chain === 'eth') {
+      const url = `https://api.etherscan.io/api?module=proxy&action=eth_getTransactionByHash&txhash=${txHash}&apikey=0e3b31d6035e43c9acfdd2d82dc42af5`;
+      const response = await fetch(url);
       const data = await response.json();
-
-      const txTo = data?.data?.[0]?.raw_data?.contract?.[0]?.parameter?.value?.to_address;
-      const decodedTo = txTo ? hexToBase58(txTo) : null;
-
-      if (data?.data?.[0]?.ret?.[0]?.contractRet === 'SUCCESS' && decodedTo === VERIFY_ADDRESS) {
-        isValid = true;
+      const tx = data.result;
+      if (tx && tx.to && tx.to.toLowerCase() === ethOrBnbAddress) {
+        return res.status(200).json({ verified: true });
+      } else {
+        throw new Error('Ethereum transaction not valid or not sent to correct address');
       }
     }
 
-    if (isValid) {
-      return res.status(200).json({ success: true });
-    } else {
-      return res.status(400).json({ success: false });
-    }
-
+    throw new Error('Unsupported chain or validation logic not implemented');
   } catch (error) {
-    console.error('Verification error:', error);
-    return res.status(500).json({ error: 'Internal server error' });
+    return res.status(400).json({ verified: false, error: error.message });
   }
-}
-
-// Helper for TRON address decoding
-function hexToBase58(hex) {
-  const base58 = require('bs58');
-  const addressBytes = Buffer.from(hex, 'hex');
-  const prefix = Buffer.from([0x41]);
-  const full = Buffer.concat([prefix, addressBytes]);
-  return base58.encode(full);
 }
