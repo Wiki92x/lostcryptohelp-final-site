@@ -5,10 +5,10 @@ import Footer from '../components/Footer';
 
 export default function App({ Component, pageProps }) {
   return (
-    <ThemeProvider attribute="class">
-      <div className="min-h-screen bg-gray-900 text-white dark:bg-white dark:text-black transition-colors duration-300">
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+      <div className="min-h-screen bg-white dark:bg-gray-900 text-gray-900 dark:text-white transition-colors duration-300">
         <Navbar />
-        <main className="px-4">
+        <main className="container mx-auto px-4">
           <Component {...pageProps} />
         </main>
         <Footer />
