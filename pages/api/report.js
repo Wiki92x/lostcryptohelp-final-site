@@ -1,49 +1,90 @@
-Perfect. Here's your next file:
+import { useState } from 'react';
 
----
-### ✅ `/pages/api/report.js`
-```js
-// pages/api/report.js
+export default function ReportForm({ txHash, chain, method }) {
+  const [name, setName] = useState('');
+  const [wallet, setWallet] = useState('');
+  const [message, setMessage] = useState('');
+  const [status, setStatus] = useState(null);
+  const [loading, setLoading] = useState(false);
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Only POST allowed' });
-  }
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setStatus(null);
 
-  const { name, wallet, message, txHash, chain, method } = req.body;
+    try {
+      const res = await fetch('/api/report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, wallet, message, txHash, chain, method }),
+      });
 
-  const botToken = process.env.VITE_TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.VITE_TELEGRAM_CHAT_ID;
+      const data = await res.json();
+      if (data.success) {
+        setStatus('Report submitted successfully.');
+        setName('');
+        setWallet('');
+        setMessage('');
+      } else {
+        setStatus('Failed to submit report.');
+      }
+    } catch (err) {
+      console.error(err);
+      setStatus('Something went wrong.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  const text = `
-🚨 *New Crypto Report Submission*
------------------------------------
-🧾 *Name:* ${name}
-💼 *Wallet:* ${wallet}
-📝 *Message:* ${message}
-🔗 *Tx Hash:* ${txHash}
-🌐 *Chain:* ${chain.toUpperCase()}
-🛠 *Method:* ${method}
-`;
+  return (
+    <form onSubmit={handleSubmit} className="mt-6 max-w-xl space-y-4">
+      <div>
+        <label className="block font-semibold mb-1">Your Name</label>
+        <input
+          type="text"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          required
+          className="w-full p-2 rounded border border-gray-400 dark:bg-gray-800 dark:text-white"
+        />
+      </div>
 
-  const telegramURL = `https://api.telegram.org/bot${botToken}/sendMessage`;
+      <div>
+        <label className="block font-semibold mb-1">Your Wallet Address</label>
+        <input
+          type="text"
+          value={wallet}
+          onChange={(e) => setWallet(e.target.value)}
+          required
+          className="w-full p-2 rounded border border-gray-400 dark:bg-gray-800 dark:text-white"
+        />
+      </div>
 
-  try {
-    const telegramRes = await fetch(telegramURL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: chatId,
-        text,
-        parse_mode: 'Markdown',
-      }),
-    });
+      <div>
+        <label className="block font-semibold mb-1">Message</label>
+        <textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          rows={4}
+          className="w-full p-2 rounded border border-gray-400 dark:bg-gray-800 dark:text-white"
+        ></textarea>
+      </div>
 
-    if (!telegramRes.ok) throw new Error('Telegram API failed');
-    return res.status(200).json({ success: true });
-  } catch (err) {
-    console.error('Telegram Error:', err);
-    return res.status(500).json({ error: 'Failed to send to Telegram' });
-  }
+      <div className="text-sm text-gray-600 dark:text-gray-300">
+        <p><strong>Chain:</strong> {chain}</p>
+        <p><strong>Tx Hash:</strong> {txHash}</p>
+        <p><strong>Method:</strong> {method}</p>
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading}
+        className="mt-4 bg-purple-700 text-white px-6 py-2 rounded hover:bg-purple-800 transition disabled:opacity-50"
+      >
+        {loading ? 'Submitting...' : 'Submit Report'}
+      </button>
+
+      {status && <p className="mt-4 font-medium text-green-500 dark:text-green-400">{status}</p>}
+    </form>
+  );
 }
-
