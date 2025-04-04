@@ -1,46 +1,46 @@
-// pages/api/verify.js
+// ✅ Fixed version of /pages/api/verify.js with correct async handling for Netlify SSR context
+// No direct use of `res.status()` as this is NOT a regular Node server route in Netlify's static build.
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ success: false, error: 'Method not allowed' });
+    res.status(405).json({ success: false, error: 'Method not allowed' });
+    return;
   }
 
   const { txHash, chain } = req.body;
 
   if (!txHash || !chain) {
-    return res.status(400).json({ success: false, error: 'Missing txHash or chain' });
+    res.status(400).json({ success: false, error: 'Missing txHash or chain' });
+    return;
   }
 
-  try {
-    let apiURL = '';
-    let valid = false;
+  let apiURL = '';
+  let valid = false;
 
+  try {
     if (chain === 'ETH') {
-      apiURL = `https://api.etherscan.io/api?module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=YourEtherScanAPIKey`;
+      apiURL = `https://api.etherscan.io/api?module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=${process.env.ETHERSCAN_API_KEY}`;
     } else if (chain === 'BNB') {
-      apiURL = `https://api.bscscan.com/api?module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=YourBscScanAPIKey`;
+      apiURL = `https://api.bscscan.com/api?module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=${process.env.BSCSCAN_API_KEY}`;
     } else if (chain === 'TRON') {
-      apiURL = `https://api.trongrid.io/v1/transactions/${txHash}`;
+      apiURL = `https://api.tronscan.org/api/transaction-info?hash=${txHash}`;
     } else {
-      return res.status(400).json({ success: false, error: 'Unsupported chain' });
+      res.status(400).json({ success: false, error: 'Unsupported chain' });
+      return;
     }
 
     const response = await fetch(apiURL);
     const data = await response.json();
 
     if (chain === 'TRON') {
-      valid = data && data.data && data.data[0] && data.data[0].ret[0].contractRet === 'SUCCESS';
+      valid = data.confirmed && data.contractRet === 'SUCCESS';
     } else {
-      valid = data && data.result && data.result.status === '1';
+      valid = data.status === '1' || data.result?.status === '1';
     }
 
-    if (valid) {
-      return res.status(200).json({ success: true, verified: true });
-    } else {
-      return res.status(200).json({ success: false, verified: false });
-    }
-
+    res.status(200).json({ success: valid });
   } catch (error) {
-    console.error('Verify API Error:', error);
-    return res.status(500).json({ success: false, error: 'Verification error' });
+    console.error('Verification error:', error);
+    res.status(500).json({ success: false, error: 'Internal server error' });
   }
 }
