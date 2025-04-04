@@ -1,114 +1,78 @@
-// pages/report.js
-import { useState, useEffect } from 'react';
-import ReportForm from '../components/ReportForm';
+// components/ReportForm.jsx
+import { useState } from 'react';
 
-export default function ReportPage() {
-  const [formUnlocked, setFormUnlocked] = useState(false);
-  const [txHash, setTxHash] = useState('');
-  const [chain, setChain] = useState('ETH'); // default chain
-  const [verified, setVerified] = useState(false);
-  const [telegramAlertsEnabled, setTelegramAlertsEnabled] = useState(true);
+export default function ReportForm({ txHash, chain, method }) {
+  const [name, setName] = useState('');
+  const [wallet, setWallet] = useState(txHash || '');
+  const [message, setMessage] = useState('');
+  const [status, setStatus] = useState(null); // 'success' | 'error'
 
-  useEffect(() => {
-    const saved = localStorage.getItem('telegramAlerts');
-    setTelegramAlertsEnabled(saved !== 'false');
-  }, []);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const handleVerify = async () => {
-    if (!txHash || !chain) {
-      alert('Please enter both transaction hash and chain.');
-      return;
-    }
+    const payload = { name, wallet, message, txHash, chain, method };
 
     try {
-      const res = await fetch('/api/verify', {
+      const res = await fetch('/api/telegram-report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ txHash, chain }),
+        body: JSON.stringify(payload),
       });
 
       const data = await res.json();
+
       if (data.success) {
-        setVerified(true);
-        setFormUnlocked(true);
-        alert('Payment verified. You may now submit the report.');
+        setStatus('success');
+        setName('');
+        setMessage('');
       } else {
-        alert('Verification failed. You may use manual unlock.');
+        setStatus('error');
       }
     } catch (err) {
       console.error(err);
-      alert('Error verifying payment.');
+      setStatus('error');
     }
   };
 
-  const handleManualUnlock = () => {
-    setFormUnlocked(true);
-    setVerified(false);
-  };
-
-  const handleToggle = () => {
-    const newVal = !telegramAlertsEnabled;
-    setTelegramAlertsEnabled(newVal);
-    localStorage.setItem('telegramAlerts', newVal);
-  };
-
   return (
-    <div className="min-h-screen bg-white text-black dark:bg-gray-900 dark:text-white p-8">
-      <h1 className="text-2xl font-bold mb-4">Report Page</h1>
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md space-y-4">
+      <input
+        type="text"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Your name or alias"
+        className="w-full px-4 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-black dark:text-white"
+      />
 
-      <div className="space-y-4 max-w-xl">
-        <div>
-          <input
-            value={txHash}
-            onChange={(e) => setTxHash(e.target.value)}
-            className="w-full p-2 border border-purple-500 rounded dark:bg-gray-800 dark:text-white"
-            placeholder="Enter transaction hash"
-          />
-        </div>
+      <input
+        type="text"
+        value={wallet}
+        onChange={(e) => setWallet(e.target.value)}
+        placeholder="Your Wallet Address"
+        className="w-full px-4 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-black dark:text-white"
+      />
 
-        <div>
-          <select
-            value={chain}
-            onChange={(e) => setChain(e.target.value)}
-            className="w-full p-2 border border-purple-500 rounded dark:bg-gray-800 dark:text-white"
-          >
-            <option value="ETH">Ethereum</option>
-            <option value="BNB">BNB Smart Chain</option>
-            <option value="TRON">TRON (TRC-20)</option>
-          </select>
-        </div>
+      <textarea
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        rows={5}
+        placeholder="Describe what happened..."
+        className="w-full px-4 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-900 text-black dark:text-white"
+      />
 
-        <div className="flex gap-4">
-          <button onClick={handleVerify} className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700">
-            Verify Payment
-          </button>
-          <button onClick={handleManualUnlock} className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700">
-            Manual Unlock
-          </button>
-        </div>
+      <button
+        type="submit"
+        className="w-full py-2 rounded bg-purple-700 hover:bg-purple-800 text-white transition duration-200"
+      >
+        Submit Report
+      </button>
 
-        <div>
-          <label className="inline-flex items-center">
-            <input
-              type="checkbox"
-              checked={telegramAlertsEnabled}
-              onChange={handleToggle}
-              className="form-checkbox h-5 w-5 text-purple-600"
-            />
-            <span className="ml-2">Enable Telegram alerts</span>
-          </label>
-        </div>
-      </div>
-
-      {formUnlocked && (
-        <div className="mt-8">
-          <ReportForm
-            txHash={txHash}
-            chain={chain}
-            method={verified ? '✅ Verified' : '🔓 Manual Unlock'}
-          />
-        </div>
+      {status === 'success' && (
+        <p className="text-green-500 mt-2">✅ Report submitted successfully.</p>
       )}
-    </div>
+      {status === 'error' && (
+        <p className="text-red-500 mt-2">❌ Failed to send report. Please try again.</p>
+      )}
+    </form>
   );
 }
