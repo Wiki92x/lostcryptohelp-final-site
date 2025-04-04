@@ -1,76 +1,76 @@
+// components/ReportForm.jsx
 import { useState } from 'react';
 
 export default function ReportForm({ txHash, chain, method }) {
-  const [form, setForm] = useState({ name: '', wallet: '', message: '' });
-  const [status, setStatus] = useState('');
-
-  const handleChange = (e) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const [name, setName] = useState('');
+  const [wallet, setWallet] = useState(txHash || '');
+  const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setStatus('Sending...');
+    setLoading(true);
+    setError(false);
 
-    const payload = {
-      ...form,
-      txHash,
-      chain,
-      method,
-    };
+    const res = await fetch('/api/telegram-report', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, wallet, message, txHash, chain, method }),
+    });
 
-    try {
-      const res = await fetch('/api/telegram-report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      if (res.ok) {
-        setStatus('✅ Report submitted successfully!');
-        setForm({ name: '', wallet: '', message: '' });
-      } else {
-        setStatus('❌ Failed to send report.');
-      }
-    } catch (err) {
-      console.error(err);
-      setStatus('❌ Error occurred.');
+    if (res.ok) {
+      setSuccess(true);
+      setName('');
+      setWallet('');
+      setMessage('');
+    } else {
+      setError(true);
     }
+    setLoading(false);
   };
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 bg-gray-800 p-6 rounded-lg">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white dark:bg-gray-900 border dark:border-gray-700 rounded-lg p-4 shadow max-w-2xl w-full"
+    >
       <input
-        type="text"
-        name="name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
         placeholder="Your Name"
-        className="w-full p-2 rounded text-black"
-        value={form.name}
-        onChange={handleChange}
+        className="w-full p-2 mb-4 border border-purple-500 rounded dark:bg-gray-800 dark:text-white"
         required
       />
       <input
-        type="text"
-        name="wallet"
+        value={wallet}
+        onChange={(e) => setWallet(e.target.value)}
         placeholder="Your Wallet Address"
-        className="w-full p-2 rounded text-black"
-        value={form.wallet}
-        onChange={handleChange}
+        className="w-full p-2 mb-4 border border-purple-500 rounded dark:bg-gray-800 dark:text-white"
         required
       />
       <textarea
-        name="message"
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
         placeholder="Describe what happened..."
-        rows="4"
-        className="w-full p-2 rounded text-black"
-        value={form.message}
-        onChange={handleChange}
+        className="w-full p-2 mb-4 border border-purple-500 rounded dark:bg-gray-800 dark:text-white"
+        rows={4}
         required
       />
-      <button type="submit" className="bg-green-600 px-4 py-2 rounded text-white w-full">
-        Submit Report
+      <button
+        type="submit"
+        disabled={loading}
+        className="w-full py-2 bg-indigo-700 hover:bg-indigo-800 text-white rounded disabled:opacity-60"
+      >
+        {loading ? 'Submitting...' : 'Submit Report'}
       </button>
-      {status && <p className="text-sm mt-2">{status}</p>}
+      {success && (
+        <p className="text-green-500 mt-2">✅ Report sent successfully!</p>
+      )}
+      {error && (
+        <p className="text-red-500 mt-2">❌ Failed to send report.</p>
+      )}
     </form>
   );
 }
