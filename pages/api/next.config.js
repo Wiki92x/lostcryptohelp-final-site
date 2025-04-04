@@ -6,7 +6,11 @@ const nextConfig = {
   // Image configuration
   images: {
     domains: ['res.cloudinary.com'],
-    unoptimized: true // Required for static exports
+    unoptimized: true, // Required for static exports
+    // Add this to ensure local images work
+    dangerouslyAllowSVG: true,
+    contentDispositionType: 'attachment',
+    contentSecurityPolicy: "default-src 'self'; script-src 'none'; sandbox;",
   },
 
   // Environment variables that should be exposed to the client
