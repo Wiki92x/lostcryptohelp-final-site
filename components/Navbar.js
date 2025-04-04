@@ -1,3 +1,4 @@
+// components/Navbar.js
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -18,19 +19,17 @@ export default function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-gray-900 dark:bg-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo and Brand Name */}
+          {/* Logo in top-left corner */}
           <Link href="/" className="flex items-center space-x-2">
-            <div className="relative w-8 h-8">
-              <Image
-                src="/logo.png"
-                alt="LostCryptoHelp"
-                width={32}
-                height={32}
-                className="object-contain"
-                priority
-              />
-            </div>
-            <span className="text-lg font-semibold text-white dark:text-gray-900">
+            <Image 
+              src="/logo.png" 
+              alt="LostCryptoHelp" 
+              width={32} 
+              height={32} 
+              className="rounded-full"
+              priority
+            />
+            <span className="font-semibold text-white dark:text-gray-900">
               LostCryptoHelp
             </span>
           </Link>
@@ -44,7 +43,7 @@ export default function Navbar() {
               About
             </Link>
             
-            {/* Theme Toggle */}
+            {/* Theme Toggle Button */}
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="p-2 rounded-lg bg-gray-800 dark:bg-gray-200"
@@ -73,8 +72,8 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden bg-gray-900 dark:bg-white">
-          <div className="px-2 pt-2 pb-3 space-y-1">
+        <div className="md:hidden">
+          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
             <Link href="/deep-scan" className="block text-gray-300 hover:text-white dark:text-gray-700 dark:hover:text-gray-900">
               Deep Scan
             </Link>
