@@ -1,51 +1,60 @@
+// pages/index.js
 import Head from 'next/head';
-import HeroSection from '../components/HeroSection';
-import WhyUsSection from '../components/WhyUsSection';
-import FAQ from '../components/FAQ';
+import Link from 'next/link';
+import { useTheme } from 'next-themes';
 
-export default function HomePage() {
+export default function Home() {
+  const { theme, setTheme } = useTheme();
+
   return (
     <>
       <Head>
-        <title>LostCryptoHelp | Scam Detection & Crypto Recovery</title>
-        <meta
-          name="description"
-          content="Scan suspicious transactions, verify scam activity, and report crypto frauds. Multi-chain support for ETH, BSC, and TRON."
-        />
-        <meta
-          property="og:title"
-          content="LostCryptoHelp – Crypto Recovery Platform"
-        />
-        <meta
-          property="og:description"
-          content="Scan suspicious wallets, detect fraud, and report scams. Anonymous. Multi-chain."
-        />
-        <link rel="canonical" href="https://lostcryptohelp.pro" />
+        <title>LostCryptoHelp | Recover Stolen Crypto</title>
+        <meta name="description" content="Scan, verify and report stolen crypto assets. Fast, secure, and anonymous recovery tool powered by blockchain analytics." />
+        <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <main>
-        <HeroSection />
-        <WhyUsSection />
-        <FAQ />
+      <main className="min-h-screen bg-gradient-to-b from-gray-900 to-black text-white px-4 sm:px-8 py-16">
+        <div className="max-w-6xl mx-auto text-center">
+          <img src="/logo.svg" alt="LostCryptoHelp" className="mx-auto w-48 mb-6" />
 
-        <section className="bg-gray-800 text-white py-12 px-4 text-center">
-          <h2 className="text-3xl font-bold mb-4">Ready to Secure Your Crypto?</h2>
-          <p className="mb-6">
-            Start a deep scan or submit a report — no sign up required.
+          <h1 className="text-4xl md:text-6xl font-bold leading-tight mb-6">
+            Recover Lost Crypto Assets Instantly
+          </h1>
+          <p className="text-lg md:text-xl text-gray-400 max-w-3xl mx-auto mb-10">
+            Scan suspicious transactions, verify scam activity, and report crypto frauds anonymously — fast and securely.
           </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-4">
-            <a
-              href="/deep-scan"
-              className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-3 rounded-md font-semibold"
-            >
-              🔍 Deep Scan
-            </a>
-            <a
-              href="/report"
-              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-md font-semibold"
-            >
-              📝 Submit Report
-            </a>
+
+          <div className="flex flex-col sm:flex-row gap-4 justify-center">
+            <Link href="/deep-scan">
+              <button className="bg-purple-600 hover:bg-purple-700 transition px-6 py-3 rounded-full text-lg font-medium">
+                🔍 Start Deep Scan
+              </button>
+            </Link>
+            <Link href="/report">
+              <button className="bg-green-600 hover:bg-green-700 transition px-6 py-3 rounded-full text-lg font-medium">
+                📝 Submit Report
+              </button>
+            </Link>
+          </div>
+        </div>
+
+        <section className="mt-20 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 max-w-6xl mx-auto text-center">
+          <div>
+            <p className="text-xl font-semibold mb-2">🧠 AI + Human Reports</p>
+            <p className="text-sm text-gray-400">Automated forensic reports with scam classification.</p>
+          </div>
+          <div>
+            <p className="text-xl font-semibold mb-2">💬 Real-Time Alerts</p>
+            <p className="text-sm text-gray-400">Telegram updates when suspicious activity is detected.</p>
+          </div>
+          <div>
+            <p className="text-xl font-semibold mb-2">🔗 Deep Wallet Scan</p>
+            <p className="text-sm text-gray-400">Multi-chain scan across ETH, BSC, TRON for red flags.</p>
+          </div>
+          <div>
+            <p className="text-xl font-semibold mb-2">💰 Crypto-Only Payments</p>
+            <p className="text-sm text-gray-400">No Stripe or PayPal. Just smart contract validation.</p>
           </div>
         </section>
       </main>
