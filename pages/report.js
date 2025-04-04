@@ -1,95 +1,53 @@
-// components/ReportForm.jsx
-import { useState } from 'react';
+Perfect. Here's your next file:
 
-export default function ReportForm({ txHash, chain, method }) {
-  const [formData, setFormData] = useState({ name: '', wallet: '', message: '' });
-  const [status, setStatus] = useState('');
-  const [loading, setLoading] = useState(false);
+---
+### ✅ `/pages/api/report.js`
+```js
+// pages/api/report.js
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+export default async function handler(req, res) {
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Only POST allowed' });
+  }
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setStatus('');
+  const { name, wallet, message, txHash, chain, method } = req.body;
 
-    try {
-      const res = await fetch('/api/report', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          txHash,
-          chain,
-          method,
-        }),
-      });
+  const botToken = process.env.VITE_TELEGRAM_BOT_TOKEN;
+  const chatId = process.env.VITE_TELEGRAM_CHAT_ID;
 
-      const data = await res.json();
-      if (data.success) {
-        setStatus('✅ Report submitted successfully.');
-        setFormData({ name: '', wallet: '', message: '' });
-      } else {
-        setStatus('❌ Failed to send report.');
-      }
-    } catch (err) {
-      console.error(err);
-      setStatus('❌ Error submitting report.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const text = `
+🚨 *New Crypto Report Submission*
+-----------------------------------
+🧾 *Name:* ${name}
+💼 *Wallet:* ${wallet}
+📝 *Message:* ${message}
+🔗 *Tx Hash:* ${txHash}
+🌐 *Chain:* ${chain.toUpperCase()}
+🛠 *Method:* ${method}
+`;
 
-  return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white dark:bg-gray-800 text-black dark:text-white p-6 rounded-lg shadow-xl w-full max-w-2xl"
-    >
-      <div className="mb-4">
-        <label className="block mb-1 font-medium">Name</label>
-        <input
-          name="name"
-          value={formData.name}
-          onChange={handleChange}
-          className="w-full px-3 py-2 border border-purple-400 dark:border-purple-600 rounded bg-white dark:bg-gray-900 dark:text-white"
-          required
-        />
-      </div>
+  const telegramURL = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
-      <div className="mb-4">
-        <label className="block mb-1 font-medium">Wallet Address</label>
-        <input
-          name="wallet"
-          value={formData.wallet}
-          onChange={handleChange}
-          className="w-full px-3 py-2 border border-purple-400 dark:border-purple-600 rounded bg-white dark:bg-gray-900 dark:text-white"
-          required
-        />
-      </div>
+  try {
+    const telegramRes = await fetch(telegramURL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        parse_mode: 'Markdown',
+      }),
+    });
 
-      <div className="mb-4">
-        <label className="block mb-1 font-medium">What happened?</label>
-        <textarea
-          name="message"
-          value={formData.message}
-          onChange={handleChange}
-          rows={4}
-          className="w-full px-3 py-2 border border-purple-400 dark:border-purple-600 rounded bg-white dark:bg-gray-900 dark:text-white"
-          required
-        />
-      </div>
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="w-full py-2 px-4 rounded bg-purple-700 text-white font-semibold hover:bg-purple-800 disabled:opacity-50"
-      >
-        {loading ? 'Submitting...' : 'Submit Report'}
-      </button>
-
-      {status && <p className="mt-4 text-sm">{status}</p>}
-    </form>
-  );
+    if (!telegramRes.ok) throw new Error('Telegram API failed');
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    console.error('Telegram Error:', err);
+    return res.status(500).json({ error: 'Failed to send to Telegram' });
+  }
 }
+```
+---
+
+Let me know once you've added this and you're ready for:
+➡️ `tailwind.config.js` or `.nvmrc` file next.
