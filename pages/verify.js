@@ -5,41 +5,52 @@ export default async function handler(req, res) {
   }
 
   const { txHash, chain } = req.body;
-
   if (!txHash || !chain) {
-    return res.status(400).json({ success: false, error: 'Missing transaction hash or chain' });
+    return res.status(400).json({ error: 'Missing transaction hash or chain' });
   }
 
   try {
-    let url = '';
-    if (chain === 'ETH') {
-      url = `https://api.etherscan.io/api?module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=0e3b31d6035e43c9acfdd2d82dc42af5`;
-    } else if (chain === 'BNB') {
-      url = `https://api.bscscan.com/api?module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=UHDMFCT2K6CUAY28PJ2VP43U582EM9KSNB`;
-    } else if (chain === 'TRON') {
-      url = `https://apilist.tronscanapi.com/api/transaction-info?hash=${txHash}`;
-    } else {
-      return res.status(400).json({ success: false, error: 'Unsupported chain' });
+    const normalizedChain = chain.toLowerCase();
+
+    if (normalizedChain === 'eth') {
+      const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
+      const url = `https://api.etherscan.io/api?module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=${ETHERSCAN_API_KEY}`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.status === '1' && data.result.status === '1') {
+        return res.status(200).json({ success: true });
+      }
     }
 
-    const response = await fetch(url);
-    const data = await response.json();
+    else if (normalizedChain === 'bsc') {
+      const BSCSCAN_API_KEY = process.env.BSCSCAN_API_KEY;
+      const url = `https://api.bscscan.com/api?module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=${BSCSCAN_API_KEY}`;
 
-    let success = false;
+      const response = await fetch(url);
+      const data = await response.json();
 
-    if (chain === 'TRON') {
-      success = data && data.hash;
-    } else {
-      success = data?.result?.status === '1';
+      if (data.status === '1' && data.result.status === '1') {
+        return res.status(200).json({ success: true });
+      }
     }
 
-    if (success) {
-      return res.status(200).json({ success: true });
-    } else {
-      return res.status(200).json({ success: false, error: 'Transaction not found or failed' });
+    else if (normalizedChain === 'tron') {
+      const url = `https://apilist.tronscanapi.com/api/transaction-info?hash=${txHash}`;
+
+      const response = await fetch(url);
+      const data = await response.json();
+
+      if (data.contractRet === 'SUCCESS') {
+        return res.status(200).json({ success: true });
+      }
     }
+
+    return res.status(400).json({ success: false, error: 'Transaction not found or not confirmed' });
+
   } catch (err) {
     console.error('Verification error:', err);
-    return res.status(500).json({ success: false, error: 'Server error' });
+    return res.status(500).json({ error: 'Internal Server Error' });
   }
 }
