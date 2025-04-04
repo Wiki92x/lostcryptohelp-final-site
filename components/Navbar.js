@@ -1,20 +1,33 @@
 // components/Navbar.jsx
 import Link from 'next/link';
+import { useTheme } from 'next-themes';
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
-import logo from '../public/logo-dark.png'; // adjust path/filename
 
 export default function Navbar() {
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
+
   return (
-    <nav className="flex items-center justify-between px-6 py-4 bg-gray-900 text-white dark:bg-white dark:text-black">
-      <Link href="/">
-        <a className="flex items-center space-x-2">
-          <Image src={logo} alt="LostCryptoHelp Logo" width={32} height={32} />
-          <span className="font-bold text-lg">LostCryptoHelp</span>
-        </a>
+    <nav className="flex items-center justify-between px-6 py-4 bg-gray-900 dark:bg-white shadow-md">
+      <Link href="/" className="flex items-center space-x-2">
+        <Image src="/logo.png" alt="LostCryptoHelp Logo" width={32} height={32} />
+        <span className="text-xl font-bold text-white dark:text-black">LostCryptoHelp</span>
       </Link>
-      <div className="space-x-4">
-        <Link href="/deep-scan"><a className="hover:underline">Deep Scan</a></Link>
-        <Link href="/report"><a className="hover:underline">Submit Report</a></Link>
+
+      <div className="flex items-center space-x-6">
+        <Link href="/deep-scan" className="text-white dark:text-black hover:underline">Deep Scan</Link>
+        <Link href="/report" className="text-white dark:text-black hover:underline">Submit Report</Link>
+        {mounted && (
+          <button
+            onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+            className="bg-purple-600 text-white text-sm px-3 py-1 rounded hover:bg-purple-700 transition"
+          >
+            {theme === 'dark' ? '🌞 Light' : '🌙 Dark'}
+          </button>
+        )}
       </div>
     </nav>
   );
