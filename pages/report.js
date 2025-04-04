@@ -6,95 +6,83 @@ export default function ReportForm({ txHash, chain, method }) {
   const [wallet, setWallet] = useState(txHash || '');
   const [message, setMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
-  const [error, setError] = useState('');
+  const [status, setStatus] = useState(null);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSubmitting(true);
-    setError('');
+    setStatus(null);
 
     try {
       const res = await fetch('/api/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, wallet, message, txHash, chain, method }),
+        body: JSON.stringify({
+          name,
+          wallet,
+          message,
+          txHash,
+          chain,
+          method,
+        }),
       });
 
       const data = await res.json();
       if (data.success) {
-        setSubmitted(true);
+        setStatus('success');
         setName('');
         setWallet('');
         setMessage('');
       } else {
-        setError('Failed to send report.');
+        setStatus('fail');
       }
     } catch (err) {
       console.error('Submit error:', err);
-      setError('Unexpected error occurred.');
+      setStatus('fail');
     } finally {
       setSubmitting(false);
     }
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="bg-white dark:bg-gray-800 text-black dark:text-white p-6 rounded shadow-md max-w-3xl w-full mx-auto mt-6"
-    >
-      <div className="mb-4">
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Your Name or Alias"
-          required
-          className="w-full p-3 border border-purple-500 rounded dark:bg-gray-900 dark:text-white"
-        />
-      </div>
+    <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 p-6 rounded shadow-md space-y-4 text-black dark:text-white">
+      <input
+        type="text"
+        placeholder="Your name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        required
+        className="w-full p-2 rounded border border-purple-500 dark:bg-gray-900 dark:text-white"
+      />
 
-      <div className="mb-4">
-        <input
-          type="text"
-          value={wallet}
-          onChange={(e) => setWallet(e.target.value)}
-          placeholder="Your Wallet Address"
-          required
-          className="w-full p-3 border border-purple-500 rounded dark:bg-gray-900 dark:text-white"
-        />
-      </div>
+      <input
+        type="text"
+        placeholder="Your Wallet Address"
+        value={wallet}
+        onChange={(e) => setWallet(e.target.value)}
+        required
+        className="w-full p-2 rounded border border-purple-500 dark:bg-gray-900 dark:text-white"
+      />
 
-      <div className="mb-4">
-        <textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Describe what happened..."
-          rows="5"
-          required
-          className="w-full p-3 border border-purple-500 rounded dark:bg-gray-900 dark:text-white"
-        />
-      </div>
+      <textarea
+        placeholder="Describe what happened..."
+        value={message}
+        onChange={(e) => setMessage(e.target.value)}
+        required
+        rows={5}
+        className="w-full p-2 rounded border border-purple-500 dark:bg-gray-900 dark:text-white"
+      />
 
       <button
         type="submit"
         disabled={submitting}
-        className={`w-full py-3 rounded text-white font-semibold transition ${
-          submitted
-            ? 'bg-green-600'
-            : submitting
-            ? 'bg-gray-500'
-            : 'bg-indigo-600 hover:bg-indigo-700'
-        }`}
+        className="w-full bg-purple-700 text-white py-2 rounded hover:bg-purple-800 transition"
       >
-        {submitting ? 'Submitting...' : submitted ? '✅ Submitted' : 'Submit Report'}
+        {submitting ? 'Sending...' : 'Submit Report'}
       </button>
 
-      {error && (
-        <p className="text-red-500 mt-3 flex items-center">
-          ❌ {error}
-        </p>
-      )}
+      {status === 'success' && <p className="text-green-500 mt-2">✅ Report sent successfully.</p>}
+      {status === 'fail' && <p className="text-red-500 mt-2">❌ Failed to send report.</p>}
     </form>
   );
 }
