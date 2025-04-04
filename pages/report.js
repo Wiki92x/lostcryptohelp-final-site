@@ -1,58 +1,46 @@
-// pages/report.js
-import { useState, useEffect } from 'react';
-import ReportForm from '../components/ReportForm';
+// components/ReportForm.jsx
+import { useState } from 'react';
 
-export default function ReportPage() {
-  const [formUnlocked, setFormUnlocked] = useState(false);
-  const [txHash, setTxHash] = useState('');
-  const [chain, setChain] = useState('');
-  const [verified, setVerified] = useState(false);
-  const [telegramAlertsEnabled, setTelegramAlertsEnabled] = useState(true);
+export default function ReportForm({ txHash, chain, method }) {
+  const [wallet, setWallet] = useState('');
+  const [description, setDescription] = useState('');
 
-  useEffect(() => {
-    const saved = localStorage.getItem('telegramAlerts') === 'false' ? false : true;
-    setTelegramAlertsEnabled(saved);
-  }, []);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const handleUnlockForm = () => {
-    setFormUnlocked(true);
-  };
-
-  const handleToggle = () => {
-    const newValue = !telegramAlertsEnabled;
-    setTelegramAlertsEnabled(newValue);
-    localStorage.setItem('telegramAlerts', newValue);
+    // Handle the actual form submission logic
+    console.log('Submitted:', { wallet, description, txHash, chain, method });
   };
 
   return (
-    <div className="min-h-screen bg-white text-black dark:bg-gray-900 dark:text-white p-8">
-      <h1 className="text-2xl font-bold mb-4">Report Page</h1>
+    <form
+      onSubmit={handleSubmit}
+      className="mt-8 space-y-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md transition-colors"
+    >
+      <input
+        type="text"
+        placeholder="Your Wallet Address"
+        value={wallet}
+        onChange={(e) => setWallet(e.target.value)}
+        className="w-full p-3 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+        required
+      />
+
+      <textarea
+        placeholder="Describe what happened..."
+        value={description}
+        onChange={(e) => setDescription(e.target.value)}
+        rows={4}
+        className="w-full p-3 rounded-md border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-black dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 transition"
+        required
+      />
+
       <button
-        onClick={handleUnlockForm}
-        className="bg-blue-600 px-4 py-2 rounded text-white hover:bg-blue-700 transition"
+        type="submit"
+        className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-md transition"
       >
-        Unlock Form
+        Submit Report
       </button>
-
-      <div className="mt-4">
-        <label className="inline-flex items-center">
-          <input
-            type="checkbox"
-            checked={telegramAlertsEnabled}
-            onChange={handleToggle}
-            className="form-checkbox h-5 w-5 text-purple-600"
-          />
-          <span className="ml-2">Enable Telegram alerts</span>
-        </label>
-      </div>
-
-      {formUnlocked && (
-        <ReportForm
-          txHash={txHash}
-          chain={chain}
-          method={verified ? '✅ Verified' : '🔓 Manual Unlock'}
-        />
-      )}
-    </div>
+    </form>
   );
 }
