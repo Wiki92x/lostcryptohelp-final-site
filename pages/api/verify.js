@@ -1,53 +1,43 @@
-// ✅ Final pages/api/verify.js
+// pages/api/verify.js
+import fetch from 'node-fetch';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return Response.json({ success: false, error: 'Method not allowed' }, { status: 405 });
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
-  const { txHash, chain } = await req.json();
+  const { txHash, chain } = req.body;
 
   if (!txHash || !chain) {
-    return Response.json({ success: false, error: 'Missing txHash or chain' }, { status: 400 });
+    return res.status(400).json({ success: false, error: 'Missing txHash or chain' });
   }
 
-  const ETH_API = process.env.ETHERSCAN_API_KEY;
-  const BSC_API = process.env.BSCSCAN_API_KEY;
-  const TRON_API = process.env.TRONSCAN_API_KEY;
-
-  const ETH_WALLET = process.env.VERIFY_ETH_ADDRESS.toLowerCase();
-  const BNB_WALLET = process.env.VERIFY_BNB_ADDRESS.toLowerCase();
-  const TRON_WALLET = process.env.VERIFY_TRON_ADDRESS;
-
-  let apiUrl = '', valid = false;
+  let apiURL = '';
+  let valid = false;
 
   try {
     if (chain === 'ETH') {
-      apiUrl = `https://api.etherscan.io/api?module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=${ETH_API}`;
+      apiURL = `https://api.etherscan.io/api?module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=${process.env.ETHERSCAN_API_KEY}`;
     } else if (chain === 'BNB') {
-      apiUrl = `https://api.bscscan.com/api?module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=${BSC_API}`;
+      apiURL = `https://api.bscscan.com/api?module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=${process.env.BSCSCAN_API_KEY}`;
     } else if (chain === 'TRON') {
-      apiUrl = `https://api.trongrid.io/v1/transactions/${txHash}`;
+      apiURL = `https://api.trongrid.io/v1/transactions/${txHash}`;
     } else {
-      return Response.json({ success: false, error: 'Unsupported chain' }, { status: 400 });
+      return res.status(400).json({ success: false, error: 'Unsupported chain' });
     }
 
-    const fetchRes = await fetch(apiUrl);
-    const data = await fetchRes.json();
+    const response = await fetch(apiURL);
+    const data = await response.json();
 
     if (chain === 'TRON') {
-      valid = data.data && data.data.length > 0 && data.data[0].contractRet === 'SUCCESS' &&
-              data.data[0].raw_data.contract[0].parameter.value.to_address === TRON_WALLET;
+      valid = data && data.data && data.data[0] && data.data[0].contractRet === 'SUCCESS';
     } else {
       valid = data.result && data.result.status === '1';
     }
 
-    if (valid) {
-      return Response.json({ success: true });
-    } else {
-      return Response.json({ success: false, error: 'Transaction not found or not valid' }, { status: 400 });
-    }
+    return res.status(200).json({ success: valid });
   } catch (err) {
-    console.error('Verify API error:', err);
-    return Response.json({ success: false, error: 'Internal server error' }, { status: 500 });
+    console.error('Verification error:', err);
+    return res.status(500).json({ success: false, error: 'Verification error' });
   }
 }
