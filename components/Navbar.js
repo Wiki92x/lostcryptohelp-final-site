@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react';
 import Image from 'next/image';
 
 export default function Navbar() {
-  const { theme, setTheme } = useTheme();
+  const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => setMounted(true), []);
@@ -17,7 +17,7 @@ export default function Navbar() {
       <Link href="/">
         <div className="flex items-center cursor-pointer">
           <Image
-            src="/logo-darkpurple.png" // update this if your logo file has a different name
+            src="/logo-darkpurple.png" // Ensure this file exists in the public folder
             alt="LostCryptoHelp Logo"
             width={36}
             height={36}
@@ -30,10 +30,10 @@ export default function Navbar() {
         <Link href="/deep-scan" className="hover:underline">Deep Scan</Link>
         <Link href="/report" className="hover:underline">Submit Report</Link>
         <button
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          onClick={() => setTheme(resolvedTheme === 'dark' ? 'light' : 'dark')}
           className="border px-2 py-1 rounded text-sm bg-white dark:bg-gray-800 text-black dark:text-white"
         >
-          {theme === 'dark' ? '🌞 Light' : '🌙 Dark'}
+          {resolvedTheme === 'dark' ? '🌞 Light' : '🌙 Dark'}
         </button>
       </div>
     </nav>
