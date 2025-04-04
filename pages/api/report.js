@@ -1,4 +1,10 @@
+Perfect. Here's your next file:
+
+---
+### ✅ `/pages/api/report.js`
+```js
 // pages/api/report.js
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST allowed' });
@@ -9,19 +15,15 @@ export default async function handler(req, res) {
   const botToken = process.env.VITE_TELEGRAM_BOT_TOKEN;
   const chatId = process.env.VITE_TELEGRAM_CHAT_ID;
 
-  if (!botToken || !chatId) {
-    return res.status(500).json({ error: 'Missing Telegram credentials in env' });
-  }
-
   const text = `
 🚨 *New Crypto Report Submission*
-------------------------------
-🧾 *Name:* ${name || 'N/A'}
-💼 *Wallet:* ${wallet || 'N/A'}
-📝 *Message:* ${message || 'None'}
-🔗 *Tx Hash:* ${txHash || 'N/A'}
-🌐 *Chain:* ${chain || 'N/A'}
-🛠 *Method:* ${method || 'N/A'}
+-----------------------------------
+🧾 *Name:* ${name}
+💼 *Wallet:* ${wallet}
+📝 *Message:* ${message}
+🔗 *Tx Hash:* ${txHash}
+🌐 *Chain:* ${chain.toUpperCase()}
+🛠 *Method:* ${method}
 `;
 
   const telegramURL = `https://api.telegram.org/bot${botToken}/sendMessage`;
@@ -44,3 +46,4 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Failed to send to Telegram' });
   }
 }
+
