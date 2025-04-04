@@ -1,7 +1,6 @@
 {
   "name": "lostcryptohelp-site",
   "version": "1.0.0",
-  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -9,17 +8,15 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "next": "13.4.19",
+    "next": "13.5.11",
     "react": "18.2.0",
     "react-dom": "18.2.0",
-    "next-themes": "^0.2.1",
-    "node-fetch": "^2.6.7",
-    "bs58": "^5.0.0",
-    "buffer": "^6.0.3"
+    "next-themes": "^0.2.0",
+    "node-fetch": "^2.6.9"
   },
   "devDependencies": {
-    "autoprefixer": "^10.4.14",
-    "postcss": "^8.4.21",
-    "tailwindcss": "^3.3.2"
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.30",
+    "tailwindcss": "^3.4.1"
   }
 }
