@@ -1,20 +1,27 @@
-Perfect. Here's your next file:
-
----
-### ✅ `/pages/api/report.js`
-```js
 // pages/api/report.js
 
+// Import necessary modules
+import fetch from 'node-fetch';
+
+// Handler function for the report endpoint
 export default async function handler(req, res) {
+  // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Only POST allowed' });
   }
 
+  // Destructure the request body
   const { name, wallet, message, txHash, chain, method } = req.body;
 
-  const botToken = process.env.VITE_TELEGRAM_BOT_TOKEN;
-  const chatId = process.env.VITE_TELEGRAM_CHAT_ID;
+  // Validate required fields
+  if (!name || !wallet || !message || !txHash || !chain || !method) {
+    return res.status(400).json({ error: 'All fields are required' });
+  }
 
+  // Destructure environment variables
+  const { VITE_TELEGRAM_BOT_TOKEN: botToken, VITE_TELEGRAM_CHAT_ID: chatId } = process.env;
+
+  // Construct the message text
   const text = `
 🚨 *New Crypto Report Submission*
 -----------------------------------
@@ -26,9 +33,11 @@ export default async function handler(req, res) {
 🛠 *Method:* ${method}
 `;
 
+  // Construct the Telegram API URL
   const telegramURL = `https://api.telegram.org/bot${botToken}/sendMessage`;
 
   try {
+    // Send the message to Telegram
     const telegramRes = await fetch(telegramURL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -39,9 +48,13 @@ export default async function handler(req, res) {
       }),
     });
 
+    // Check if the Telegram API request was successful
     if (!telegramRes.ok) throw new Error('Telegram API failed');
+
+    // Respond with success
     return res.status(200).json({ success: true });
   } catch (err) {
+    // Log the error and respond with an error message
     console.error('Telegram Error:', err);
     return res.status(500).json({ error: 'Failed to send to Telegram' });
   }
