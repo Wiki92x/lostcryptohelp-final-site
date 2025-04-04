@@ -25,14 +25,15 @@ export default function ReportPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white dark:bg-white dark:text-black p-8">
+    <div className="min-h-screen bg-white text-black dark:bg-gray-900 dark:text-white p-8">
       <h1 className="text-2xl font-bold mb-4">Report Page</h1>
       <button
         onClick={handleUnlockForm}
-        className="bg-blue-600 px-4 py-2 rounded text-white"
+        className="bg-blue-600 px-4 py-2 rounded text-white hover:bg-blue-700 transition"
       >
         Unlock Form
       </button>
+
       <div className="mt-4">
         <label className="inline-flex items-center">
           <input
@@ -44,6 +45,7 @@ export default function ReportPage() {
           <span className="ml-2">Enable Telegram alerts</span>
         </label>
       </div>
+
       {formUnlocked && (
         <ReportForm
           txHash={txHash}
