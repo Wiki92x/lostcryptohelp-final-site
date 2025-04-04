@@ -2,78 +2,94 @@
 import { useState } from 'react';
 
 export default function ReportForm({ txHash, chain, method }) {
-  const [name, setName] = useState('');
-  const [wallet, setWallet] = useState(txHash || '');
-  const [message, setMessage] = useState('');
-  const [status, setStatus] = useState(null);
+  const [formData, setFormData] = useState({ name: '', wallet: '', message: '' });
+  const [status, setStatus] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setStatus('');
 
     try {
       const res = await fetch('/api/report', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, wallet, message, txHash, chain, method }),
+        body: JSON.stringify({
+          ...formData,
+          txHash,
+          chain,
+          method,
+        }),
       });
 
       const data = await res.json();
       if (data.success) {
-        setStatus('success');
+        setStatus('✅ Report submitted successfully.');
+        setFormData({ name: '', wallet: '', message: '' });
       } else {
-        setStatus('error');
+        setStatus('❌ Failed to send report.');
       }
     } catch (err) {
-      console.error('Submit error:', err);
-      setStatus('error');
+      console.error(err);
+      setStatus('❌ Error submitting report.');
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-900 p-4 rounded shadow max-w-3xl w-full">
+    <form
+      onSubmit={handleSubmit}
+      className="bg-white dark:bg-gray-800 text-black dark:text-white p-6 rounded-lg shadow-xl w-full max-w-2xl"
+    >
       <div className="mb-4">
+        <label className="block mb-1 font-medium">Name</label>
         <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Your Name"
-          className="w-full p-2 border border-purple-500 rounded dark:bg-gray-800 dark:text-white"
+          name="name"
+          value={formData.name}
+          onChange={handleChange}
+          className="w-full px-3 py-2 border border-purple-400 dark:border-purple-600 rounded bg-white dark:bg-gray-900 dark:text-white"
           required
         />
       </div>
+
       <div className="mb-4">
+        <label className="block mb-1 font-medium">Wallet Address</label>
         <input
-          type="text"
-          value={wallet}
-          onChange={(e) => setWallet(e.target.value)}
-          placeholder="Your Wallet Address"
-          className="w-full p-2 border border-purple-500 rounded dark:bg-gray-800 dark:text-white"
+          name="wallet"
+          value={formData.wallet}
+          onChange={handleChange}
+          className="w-full px-3 py-2 border border-purple-400 dark:border-purple-600 rounded bg-white dark:bg-gray-900 dark:text-white"
           required
         />
       </div>
+
       <div className="mb-4">
+        <label className="block mb-1 font-medium">What happened?</label>
         <textarea
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="Describe what happened..."
+          name="message"
+          value={formData.message}
+          onChange={handleChange}
           rows={4}
-          className="w-full p-2 border border-purple-500 rounded dark:bg-gray-800 dark:text-white"
+          className="w-full px-3 py-2 border border-purple-400 dark:border-purple-600 rounded bg-white dark:bg-gray-900 dark:text-white"
           required
         />
       </div>
+
       <button
         type="submit"
-        className="w-full bg-indigo-700 hover:bg-indigo-800 text-white font-bold py-2 px-4 rounded"
+        disabled={loading}
+        className="w-full py-2 px-4 rounded bg-purple-700 text-white font-semibold hover:bg-purple-800 disabled:opacity-50"
       >
-        Submit Report
+        {loading ? 'Submitting...' : 'Submit Report'}
       </button>
 
-      {status === 'success' && (
-        <p className="mt-4 text-green-500">✅ Report submitted successfully.</p>
-      )}
-      {status === 'error' && (
-        <p className="mt-4 text-red-500">❌ Failed to send report.</p>
-      )}
+      {status && <p className="mt-4 text-sm">{status}</p>}
     </form>
   );
 }
