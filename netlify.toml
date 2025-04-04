@@ -1,20 +1,21 @@
 [build]
   command = "npm run build"
   publish = ".next"
-  node_version = "18"
-
-[context.production.environment]
-  ETHERSCAN_API_KEY = "your-key"
-  BSCSCAN_API_KEY = "your-key"
-  TRONSCAN_API_KEY = "your-key"
-  VITE_TELEGRAM_BOT_TOKEN = "your-key"
-  VITE_TELEGRAM_CHAT_ID = "your-id"
-  VERIFY_ETH_ADDRESS = "0x6a160Bb6a9Bea759b43De6ce735978992ad81b7D"
-  VERIFY_BNB_ADDRESS = "0x6a160Bb6a9Bea759b43De6ce735978992ad81b7D"
-  VERIFY_TRON_ADDRESS = "TM6HGn9p9ZEo525PATPZanYCA4W9nQezTv"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-[build.rollupOptions]
-  external = ["react", "react-dom"]
+[build.environment]
+  NEXT_USE_NETLIFY_EDGE = "true"
+  NODE_VERSION = "18"
+
+[context.production.environment]
+  NEXT_PUBLIC_SITE_URL = "https://your-site-url.netlify.app"
+  ETHERSCAN_API_KEY = "${ETHERSCAN_API_KEY}"
+  BSCSCAN_API_KEY = "${BSCSCAN_API_KEY}"
+  TRONSCAN_API_KEY = "${TRONSCAN_API_KEY}"
+  VITE_TELEGRAM_BOT_TOKEN = "${VITE_TELEGRAM_BOT_TOKEN}"
+  VITE_TELEGRAM_CHAT_ID = "${VITE_TELEGRAM_CHAT_ID}"
+  VERIFY_ETH_ADDRESS = "${VERIFY_ETH_ADDRESS}"
+  VERIFY_BNB_ADDRESS = "${VERIFY_BNB_ADDRESS}"
+  VERIFY_TRON_ADDRESS = "${VERIFY_TRON_ADDRESS}"
