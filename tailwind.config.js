@@ -3,10 +3,20 @@ module.exports = {
   content: [
     "./pages/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}",
-    "./styles/**/*.css",
   ],
+  darkMode: "class", // enables class-based dark mode
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+      },
+      colors: {
+        primary: "#6C47FF",
+        secondary: "#8E44AD",
+        success: "#4CAF50",
+        danger: "#FF5252",
+      },
+    },
   },
   plugins: [],
 };
