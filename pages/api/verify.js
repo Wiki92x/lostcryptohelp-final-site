@@ -1,57 +1,46 @@
 // pages/api/verify.js
-
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
+    return res.status(405).json({ success: false, error: 'Method not allowed' });
   }
 
-  const { txHash, network } = req.body;
-  if (!txHash || !network) {
-    return res.status(400).json({ error: 'Missing transaction hash or network' });
-  }
+  const { txHash, chain } = req.body;
 
-  const chain = network.toLowerCase();
-  const ethOrBnbAddress = '0x6a160Bb6a9Bea759b43De6ce735978992ad81b7D'.toLowerCase();
-  const tronAddress = 'TM6HGn9p9ZEo525PATPZanYCA4W9nQezTv';
+  if (!txHash || !chain) {
+    return res.status(400).json({ success: false, error: 'Missing txHash or chain' });
+  }
 
   try {
-    if (chain === 'tron') {
-      const url = `https://apilist.tronscanapi.com/api/transaction-info?hash=${txHash}`;
-      const response = await fetch(url);
-      const data = await response.json();
-      if (data && data.contractRet === 'SUCCESS' && data.toAddress === tronAddress) {
-        return res.status(200).json({ verified: true });
-      } else {
-        throw new Error('TRON transaction not valid or not sent to correct address');
-      }
+    let apiURL = '';
+    let valid = false;
+
+    if (chain === 'ETH') {
+      apiURL = `https://api.etherscan.io/api?module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=YourEtherScanAPIKey`;
+    } else if (chain === 'BNB') {
+      apiURL = `https://api.bscscan.com/api?module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=YourBscScanAPIKey`;
+    } else if (chain === 'TRON') {
+      apiURL = `https://api.trongrid.io/v1/transactions/${txHash}`;
+    } else {
+      return res.status(400).json({ success: false, error: 'Unsupported chain' });
     }
 
-    if (chain === 'bsc') {
-      const url = `https://api.bscscan.com/api?module=proxy&action=eth_getTransactionByHash&txhash=${txHash}&apikey=UHDMFCT2K6CUAY28PJ2VP43U582EM9KSNB`;
-      const response = await fetch(url);
-      const data = await response.json();
-      const tx = data.result;
-      if (tx && tx.to && tx.to.toLowerCase() === ethOrBnbAddress) {
-        return res.status(200).json({ verified: true });
-      } else {
-        throw new Error('BSC transaction not valid or not sent to correct address');
-      }
+    const response = await fetch(apiURL);
+    const data = await response.json();
+
+    if (chain === 'TRON') {
+      valid = data && data.data && data.data[0] && data.data[0].ret[0].contractRet === 'SUCCESS';
+    } else {
+      valid = data && data.result && data.result.status === '1';
     }
 
-    if (chain === 'eth') {
-      const url = `https://api.etherscan.io/api?module=proxy&action=eth_getTransactionByHash&txhash=${txHash}&apikey=0e3b31d6035e43c9acfdd2d82dc42af5`;
-      const response = await fetch(url);
-      const data = await response.json();
-      const tx = data.result;
-      if (tx && tx.to && tx.to.toLowerCase() === ethOrBnbAddress) {
-        return res.status(200).json({ verified: true });
-      } else {
-        throw new Error('Ethereum transaction not valid or not sent to correct address');
-      }
+    if (valid) {
+      return res.status(200).json({ success: true, verified: true });
+    } else {
+      return res.status(200).json({ success: false, verified: false });
     }
 
-    throw new Error('Unsupported chain or validation logic not implemented');
   } catch (error) {
-    return res.status(400).json({ verified: false, error: error.message });
+    console.error('Verify API Error:', error);
+    return res.status(500).json({ success: false, error: 'Verification error' });
   }
 }
