@@ -1,4 +1,3 @@
-// components/Navbar.js
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -20,22 +19,21 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo and Brand Name */}
-          <div className="flex items-center">
-            <Link href="/" className="flex items-center">
-              <div className="relative w-8 h-8">
-                <Image
-                  src="/images/logo.png"
-                  alt="LostCryptoHelp"
-                  fill
-                  className="object-contain"
-                  priority
-                />
-              </div>
-              <span className="ml-2 text-lg font-semibold text-white dark:text-gray-900">
-                LostCryptoHelp
-              </span>
-            </Link>
-          </div>
+          <Link href="/" className="flex items-center space-x-2">
+            <div className="relative w-8 h-8">
+              <Image
+                src="/logo.png"
+                alt="LostCryptoHelp"
+                width={32}
+                height={32}
+                className="object-contain"
+                priority
+              />
+            </div>
+            <span className="text-lg font-semibold text-white dark:text-gray-900">
+              LostCryptoHelp
+            </span>
+          </Link>
 
           {/* Navigation Links */}
           <div className="hidden md:flex items-center space-x-4">
@@ -46,7 +44,7 @@ export default function Navbar() {
               About
             </Link>
             
-            {/* Theme Toggle Button */}
+            {/* Theme Toggle */}
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
               className="p-2 rounded-lg bg-gray-800 dark:bg-gray-200"
@@ -75,8 +73,8 @@ export default function Navbar() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
+        <div className="md:hidden bg-gray-900 dark:bg-white">
+          <div className="px-2 pt-2 pb-3 space-y-1">
             <Link href="/deep-scan" className="block text-gray-300 hover:text-white dark:text-gray-700 dark:hover:text-gray-900">
               Deep Scan
             </Link>
