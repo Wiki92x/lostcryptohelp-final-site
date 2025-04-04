@@ -2,18 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --foreground: #000000;
+  --background: #ffffff;
+}
+
+[data-theme='dark'] {
+  --foreground: #ffffff;
+  --background: #111827;
+}
+
 body {
-  @apply bg-gray-900 text-white font-sans;
+  color: var(--foreground);
+  background: var(--background);
 }
 
-a {
-  @apply text-indigo-400 hover:text-indigo-300 transition duration-150;
-}
-
-button {
-  @apply bg-indigo-600 text-white px-4 py-2 rounded hover:bg-indigo-700;
-}
-
-input, textarea {
-  @apply text-black; /* Ensure input text is visible */
-}
+/* Rest of your existing styles... */
