@@ -16,6 +16,5 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-[build.rollupOptions.external]
-  - react
-  - react-dom
+[build.rollupOptions]
+  external = ["react", "react-dom"]
