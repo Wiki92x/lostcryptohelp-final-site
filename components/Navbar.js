@@ -1,4 +1,5 @@
-import { useState } from 'react';
+// components/Navbar.js
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useTheme } from 'next-themes';
@@ -6,23 +7,31 @@ import { useTheme } from 'next-themes';
 export default function Navbar() {
   const { theme, setTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  if (!mounted) return null;
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-gray-900 dark:bg-white shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo and Brand Name */}
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
-              <Image
-                src="/logo.png" // Make sure your logo is in the public folder
-                alt="LostCryptoHelp Logo"
-                width={32}
-                height={32}
-                className="rounded-full"
-                priority
-              />
-              <span className="ml-2 text-xl font-bold text-white dark:text-gray-900">
+              <div className="relative w-8 h-8">
+                <Image
+                  src="/images/logo.png"
+                  alt="LostCryptoHelp"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
+              <span className="ml-2 text-lg font-semibold text-white dark:text-gray-900">
                 LostCryptoHelp
               </span>
             </Link>
