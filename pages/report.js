@@ -46,8 +46,3 @@ export default async function handler(req, res) {
     return res.status(500).json({ error: 'Failed to send to Telegram' });
   }
 }
-```
----
-
-Let me know once you've added this and you're ready for:
-➡️ `tailwind.config.js` or `.nvmrc` file next.
