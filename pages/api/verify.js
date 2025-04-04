@@ -1,46 +1,53 @@
-// ✅ Fixed version of /pages/api/verify.js with correct async handling for Netlify SSR context
-// No direct use of `res.status()` as this is NOT a regular Node server route in Netlify's static build.
-
+// ✅ Final pages/api/verify.js
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
-    res.status(405).json({ success: false, error: 'Method not allowed' });
-    return;
+    return Response.json({ success: false, error: 'Method not allowed' }, { status: 405 });
   }
 
-  const { txHash, chain } = req.body;
+  const { txHash, chain } = await req.json();
 
   if (!txHash || !chain) {
-    res.status(400).json({ success: false, error: 'Missing txHash or chain' });
-    return;
+    return Response.json({ success: false, error: 'Missing txHash or chain' }, { status: 400 });
   }
 
-  let apiURL = '';
-  let valid = false;
+  const ETH_API = process.env.ETHERSCAN_API_KEY;
+  const BSC_API = process.env.BSCSCAN_API_KEY;
+  const TRON_API = process.env.TRONSCAN_API_KEY;
+
+  const ETH_WALLET = process.env.VERIFY_ETH_ADDRESS.toLowerCase();
+  const BNB_WALLET = process.env.VERIFY_BNB_ADDRESS.toLowerCase();
+  const TRON_WALLET = process.env.VERIFY_TRON_ADDRESS;
+
+  let apiUrl = '', valid = false;
 
   try {
     if (chain === 'ETH') {
-      apiURL = `https://api.etherscan.io/api?module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=${process.env.ETHERSCAN_API_KEY}`;
+      apiUrl = `https://api.etherscan.io/api?module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=${ETH_API}`;
     } else if (chain === 'BNB') {
-      apiURL = `https://api.bscscan.com/api?module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=${process.env.BSCSCAN_API_KEY}`;
+      apiUrl = `https://api.bscscan.com/api?module=transaction&action=gettxreceiptstatus&txhash=${txHash}&apikey=${BSC_API}`;
     } else if (chain === 'TRON') {
-      apiURL = `https://api.tronscan.org/api/transaction-info?hash=${txHash}`;
+      apiUrl = `https://api.trongrid.io/v1/transactions/${txHash}`;
     } else {
-      res.status(400).json({ success: false, error: 'Unsupported chain' });
-      return;
+      return Response.json({ success: false, error: 'Unsupported chain' }, { status: 400 });
     }
 
-    const response = await fetch(apiURL);
-    const data = await response.json();
+    const fetchRes = await fetch(apiUrl);
+    const data = await fetchRes.json();
 
     if (chain === 'TRON') {
-      valid = data.confirmed && data.contractRet === 'SUCCESS';
+      valid = data.data && data.data.length > 0 && data.data[0].contractRet === 'SUCCESS' &&
+              data.data[0].raw_data.contract[0].parameter.value.to_address === TRON_WALLET;
     } else {
-      valid = data.status === '1' || data.result?.status === '1';
+      valid = data.result && data.result.status === '1';
     }
 
-    res.status(200).json({ success: valid });
-  } catch (error) {
-    console.error('Verification error:', error);
-    res.status(500).json({ success: false, error: 'Internal server error' });
+    if (valid) {
+      return Response.json({ success: true });
+    } else {
+      return Response.json({ success: false, error: 'Transaction not found or not valid' }, { status: 400 });
+    }
+  } catch (err) {
+    console.error('Verify API error:', err);
+    return Response.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }
