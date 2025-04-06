@@ -1,7 +1,8 @@
 'use client';
 
-import { useAccount } from 'wagmi';
 import { useEffect, useState } from 'react';
+import { useAccount } from 'wagmi';
+import { useRevoke } from '@/hooks/useRevoke'; // Make sure the hook exists!
 
 type ApprovalItem = {
   token: string;
@@ -13,6 +14,7 @@ type ApprovalItem = {
 
 export default function RevokePage() {
   const { address, isConnected } = useAccount();
+  const { revoke } = useRevoke();
   const [approvals, setApprovals] = useState<ApprovalItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -28,7 +30,7 @@ export default function RevokePage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           wallet: address,
-          chain: 'eth', // Change to 'bsc' for BSC
+          chain: 'eth', // or 'bsc' if you're on Binance Smart Chain
         }),
       });
 
@@ -42,6 +44,27 @@ export default function RevokePage() {
     }
   };
 
+  const handleRevoke = async (token: string, contract: string, spender: string) => {
+    try {
+      const txHash = await revoke(contract, spender);
+      alert(`Revoke sent!\nTX Hash: ${txHash}`);
+
+      // Trigger Telegram Alert
+      await fetch('http://localhost:8000/telegram/alert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          wallet: address,
+          token,
+          spender,
+          txHash,
+        }),
+      });
+    } catch (err: any) {
+      alert(`Revoke failed: ${err.message}`);
+    }
+  };
+
   useEffect(() => {
     if (isConnected) fetchApprovals();
   }, [address, isConnected]);
@@ -51,7 +74,10 @@ export default function RevokePage() {
       <div className="max-w-5xl mx-auto">
         <h1 className="text-4xl font-bold text-purple-500 mb-6">Revoke Token Approvals</h1>
         <p className="text-gray-400 mb-10">
-          Wallet: <span className="text-green-400 font-mono">{isConnected ? address : 'Not connected'}</span>
+          Wallet:{' '}
+          <span className="text-green-400 font-mono">
+            {isConnected ? address : 'Not connected'}
+          </span>
         </p>
 
         {loading && <p className="text-yellow-400">Scanning approvals...</p>}
@@ -65,13 +91,22 @@ export default function RevokePage() {
             >
               <div>
                 <h3 className="font-semibold text-white mb-1">
-                  {item.token} — <span className="text-sm text-gray-400">{item.contract.slice(0, 6)}...{item.contract.slice(-4)}</span>
+                  {item.token}{' '}
+                  <span className="text-sm text-gray-400">
+                    ({item.contract.slice(0, 6)}...{item.contract.slice(-4)})
+                  </span>
                 </h3>
                 <p className="text-sm text-gray-400">Spender: {item.spender}</p>
-                <p className="text-sm text-yellow-400">Risk: {item.risk}</p>
+                <p
+                  className={`text-sm font-medium ${
+                    item.risk === 'High' ? 'text-red-400' : 'text-green-400'
+                  }`}
+                >
+                  Risk Level: {item.risk}
+                </p>
               </div>
               <button
-                onClick={() => alert(`Revoke ${item.token} from ${item.spender}`)}
+                onClick={() => handleRevoke(item.token, item.contract, item.spender)}
                 className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md font-semibold"
               >
                 Revoke
