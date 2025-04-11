@@ -1,17 +1,22 @@
-'use client';
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-import './globals.css'; // ✅ adjust path if needed
-import { WagmiConfig } from 'wagmi';
-import { wagmiConfig } from '@/lib/wagmiClient';
+:root {
+  --foreground: #000;
+  --background: #fff;
+}
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <html lang="en">
-      <body>
-        <WagmiConfig config={wagmiConfig}>
-          {children}
-        </WagmiConfig>
-      </body>
-    </html>
-  );
+[data-theme='dark'],
+.dark {
+  --foreground: #fff;
+  --background: #0f1117;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+  font-family: Inter, sans-serif;
+  margin: 0;
+  padding: 0;
 }
