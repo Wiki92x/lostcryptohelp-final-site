@@ -1,6 +1,6 @@
 'use client';
 
-import './globals.css';
+import './globals.css'; // ✅ adjust path if needed
 import { WagmiConfig } from 'wagmi';
 import { wagmiConfig } from '@/lib/wagmiClient';
 
