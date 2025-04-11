@@ -4,7 +4,7 @@ import { useTheme } from 'next-themes';
 import { useEffect, useState } from 'react';
 
 export default function ThemeSwitcher() {
-  const { theme, setTheme } = useTheme();
+  const { theme, setTheme, systemTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -13,17 +13,15 @@ export default function ThemeSwitcher() {
 
   if (!mounted) return null;
 
-  const toggleTheme = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark');
-  };
+  const currentTheme = theme === 'system' ? systemTheme : theme;
 
   return (
     <button
-      onClick={toggleTheme}
+      onClick={() => setTheme(currentTheme === 'dark' ? 'light' : 'dark')}
       className="text-xl px-3 py-1 rounded hover:bg-gray-200 dark:hover:bg-gray-800 transition"
-      aria-label="Toggle theme"
+      aria-label="Toggle Theme"
     >
-      {theme === 'dark' ? '🌞' : '🌙'}
+      {currentTheme === 'dark' ? '🌞' : '🌙'}
     </button>
   );
 }
