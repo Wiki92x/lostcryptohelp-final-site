@@ -1,16 +1,18 @@
+# ✅ netlify.toml — Final Production Setup for Dynamic Next.js (App Router, API Routes, No Export Errors)
+
 [build]
   command = "npm run build"
   publish = ".next"
 
-[build.environment]
-  NODE_VERSION = "18"
-  NEXT_USE_NETLIFY_EDGE = "true"
-
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
+[build.environment]
+  NEXT_USE_NETLIFY_EDGE = "true"
+  NODE_VERSION = "18"
+
 [context.production.environment]
-  NEXT_PUBLIC_SITE_URL = "${NEXT_PUBLIC_SITE_URL}"
+  NEXT_PUBLIC_SITE_URL = "https://lostcryptohelp.pro"
   ETHERSCAN_API_KEY = "${ETHERSCAN_API_KEY}"
   BSCSCAN_API_KEY = "${BSCSCAN_API_KEY}"
   TRONSCAN_API_KEY = "${TRONSCAN_API_KEY}"
@@ -19,3 +21,6 @@
   VERIFY_ETH_ADDRESS = "${VERIFY_ETH_ADDRESS}"
   VERIFY_BNB_ADDRESS = "${VERIFY_BNB_ADDRESS}"
   VERIFY_TRON_ADDRESS = "${VERIFY_TRON_ADDRESS}"
+
+# ❌ Do NOT use `next export` or `output: export` in next.config.js
+# ✅ Let @netlify/plugin-nextjs handle build and SSR routing
