@@ -1,4 +1,6 @@
-import fetch from 'node-fetch';
+// pages/api/deepscan.js
+
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -13,34 +15,32 @@ export default async function handler(req, res) {
 
   let apiKey = '';
   let baseUrl = '';
-  let chainId = 0;
 
   if (chain === 'eth') {
     apiKey = process.env.ETHERSCAN_API_KEY;
     baseUrl = 'https://api.etherscan.io';
-    chainId = 1;
   } else if (chain === 'bsc') {
     apiKey = process.env.BSCSCAN_API_KEY;
     baseUrl = 'https://api.bscscan.com';
-    chainId = 56;
   } else {
-    return res.status(400).json({ error: 'Only ETH and BSC supported for now' });
+    return res.status(400).json({ error: 'Unsupported chain selected' });
   }
 
-  const url = `${baseUrl}/api?module=account&action=tokentx&address=${wallet}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`;
-
   try {
-    const txRes = await fetch(url);
-    const txData = await txRes.json();
+    const url = `${baseUrl}/api?module=account&action=tokentx&address=${wallet}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`;
+    const response = await fetch(url);
+    const data = await response.json();
 
-    if (txData.status !== '1') {
-      return res.status(500).json({ error: 'Etherscan fetch failed', message: txData.message });
+    if (data.status !== '1') {
+      return res.status(500).json({ error: 'Etherscan fetch failed', message: data.message });
     }
 
-    const transfers = txData.result.slice(0, 10);
-    return res.status(200).json({ transfers });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: 'Server error', message: error.message });
+    return res.status(200).json({
+      wallet,
+      chain,
+      transactions: data.result.slice(0, 10), // Top 10 recent transfers
+    });
+  } catch (err) {
+    return res.status(500).json({ error: 'Server error', message: err.message });
   }
 }
