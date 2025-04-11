@@ -1,7 +1,6 @@
 // components/Navbar.js
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { useTheme } from 'next-themes';
 
 export default function Navbar() {
@@ -19,17 +18,10 @@ export default function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-gray-900 dark:bg-white shadow-lg">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          {/* Logo in top-left corner */}
+
+          {/* Brand Name Without Logo */}
           <Link href="/" className="flex items-center space-x-2">
-            <Image 
-              src="/logo.png" 
-              alt="LostCryptoHelp" 
-              width={32} 
-              height={32} 
-              className="rounded-full"
-              priority
-            />
-            <span className="font-semibold text-white dark:text-gray-900">
+            <span className="font-semibold text-white dark:text-gray-900 text-lg">
               LostCryptoHelp
             </span>
           </Link>
@@ -42,7 +34,7 @@ export default function Navbar() {
             <Link href="/about" className="text-gray-300 hover:text-white dark:text-gray-700 dark:hover:text-gray-900">
               About
             </Link>
-            
+
             {/* Theme Toggle Button */}
             <button
               onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
