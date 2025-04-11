@@ -10,18 +10,12 @@
   package = "@netlify/plugin-nextjs"
 
 [context.production.environment]
-  NEXT_PUBLIC_SITE_URL = "https://lostcryptohelp.pro"
-
-  # 🔐 External APIs
+  NEXT_PUBLIC_SITE_URL = "${NEXT_PUBLIC_SITE_URL}"
   ETHERSCAN_API_KEY = "${ETHERSCAN_API_KEY}"
   BSCSCAN_API_KEY = "${BSCSCAN_API_KEY}"
   TRONSCAN_API_KEY = "${TRONSCAN_API_KEY}"
-
-  # 📬 Telegram Bot
   VITE_TELEGRAM_BOT_TOKEN = "${VITE_TELEGRAM_BOT_TOKEN}"
   VITE_TELEGRAM_CHAT_ID = "${VITE_TELEGRAM_CHAT_ID}"
-
-  # ✅ Verification Wallets
   VERIFY_ETH_ADDRESS = "${VERIFY_ETH_ADDRESS}"
   VERIFY_BNB_ADDRESS = "${VERIFY_BNB_ADDRESS}"
   VERIFY_TRON_ADDRESS = "${VERIFY_TRON_ADDRESS}"
