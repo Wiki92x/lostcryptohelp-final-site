@@ -1,29 +1,20 @@
-'use client';
+import { useState } from 'react';
 
-import { usePublicClient, useWalletClient } from 'wagmi';
-import { parseAbi, encodeFunctionData } from 'viem';
+export default function useRevoke() {
+  const [revoking, setRevoking] = useState(false);
 
-export function useRevoke() {
-  const { data: walletClient } = useWalletClient();
-  const publicClient = usePublicClient();
-
-  const revoke = async (tokenAddress: string, spender: string) => {
-    if (!walletClient) throw new Error('Wallet not connected');
-
-    const abi = parseAbi(['function approve(address spender, uint256 amount) public returns (bool)']);
-
-    const tx = {
-      to: tokenAddress,
-      data: encodeFunctionData({
-        abi,
-        functionName: 'approve',
-        args: [spender, 0n],
-      }),
-    };
-
-    const hash = await walletClient.sendTransaction(tx);
-    return hash;
+  const revokeAccess = async (wallet: string) => {
+    setRevoking(true);
+    try {
+      // Mock: Replace with real revoke logic or API
+      await new Promise((res) => setTimeout(res, 1500));
+      return { success: true };
+    } catch (err) {
+      return { success: false, error: 'Failed to revoke' };
+    } finally {
+      setRevoking(false);
+    }
   };
 
-  return { revoke };
+  return { revoking, revokeAccess };
 }
