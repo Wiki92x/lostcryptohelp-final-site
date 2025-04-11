@@ -1,23 +1,18 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+'use client';
 
-:root {
-  --foreground: #000000;
-  --background: #ffffff;
-}
+import '../styles/globals.css'; // ✅ correctly points to /styles/
 
-[data-theme='dark'],
-.dark {
-  --foreground: #ffffff;
-  --background: #0f1117;
-}
+import { WagmiConfig } from 'wagmi';
+import { wagmiConfig } from '@/lib/wagmiClient';
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Inter, sans-serif;
-  margin: 0;
-  padding: 0;
-  transition: background-color 0.3s ease, color 0.3s ease;
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html lang="en">
+      <body>
+        <WagmiConfig config={wagmiConfig}>
+          {children}
+        </WagmiConfig>
+      </body>
+    </html>
+  );
 }
