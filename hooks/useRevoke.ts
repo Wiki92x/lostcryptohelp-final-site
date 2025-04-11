@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export default function useRevoke() { ... }
+export default function useRevoke() {
   const [revoking, setRevoking] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -13,7 +13,6 @@ export default function useRevoke() { ... }
     setResult(null);
 
     try {
-      // Replace this with your actual revoke API logic
       const res = await fetch('/api/revoke', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
