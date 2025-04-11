@@ -29,7 +29,6 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const url = `${baseUrls[chain]}?module=account&action=tokentx&address=${wallet}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKeys[chain]}`;
-
     const etherscanRes = await fetch(url);
     const etherscanData = await etherscanRes.json();
 
@@ -38,7 +37,16 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     const topTransfers = etherscanData.result.slice(0, 10);
-    const transfers = [];
+    const transfers: {
+      token: string;
+      symbol: string;
+      value: number;
+      from: string;
+      to: string;
+      hash: string;
+      contract: string;
+      risk_flags: any;
+    }[] = [];
 
     for (const tx of topTransfers) {
       const contract = tx.contractAddress.toLowerCase();
@@ -59,8 +67,9 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     }
 
     return res.status(200).json({ wallet, chain, transfers });
-  } catch (err: any) {
-    console.error('deepscan error:', err.message);
-    return res.status(500).json({ error: 'Internal server error', message: err.message });
+
+  } catch (error: any) {
+    console.error(error);
+    return res.status(500).json({ error: 'Server error', details: error.message });
   }
 }
