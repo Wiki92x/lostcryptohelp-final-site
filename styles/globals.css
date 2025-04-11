@@ -2,19 +2,56 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Global CSS variables for light/dark themes */
 :root {
   --foreground: #000000;
   --background: #ffffff;
 }
 
-[data-theme='dark'] {
+[data-theme='dark'],
+.dark {
   --foreground: #ffffff;
-  --background: #111827;
+  --background: #0f1117;
 }
 
-body {
+html, body {
+  padding: 0;
+  margin: 0;
+  font-family: Inter, sans-serif;
+  background-color: var(--background);
   color: var(--foreground);
-  background: var(--background);
+  min-height: 100vh;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
-/* Rest of your existing styles... */
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Button base styling */
+button {
+  transition: all 0.2s ease;
+}
+
+/* Form element reset */
+input,
+textarea,
+select {
+  background-color: var(--background);
+  color: var(--foreground);
+}
+
+/* Utility classes for form border visuals in dark/light */
+input,
+textarea {
+  border: 1px solid rgba(156, 163, 175, 0.4); /* gray-400 */
+  border-radius: 0.375rem; /* rounded-md */
+  padding: 0.5rem 0.75rem;
+}
+
+/* Fix for autofill background in Chrome */
+input:-webkit-autofill {
+  box-shadow: 0 0 0 1000px var(--background) inset !important;
+  -webkit-text-fill-color: var(--foreground) !important;
+}
