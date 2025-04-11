@@ -21,33 +21,39 @@ export default function DashboardPage() {
   const { address, isConnected } = useAccount();
 
   return (
-    <div className="min-h-screen bg-black text-white px-6 py-20">
+    <div className="min-h-screen bg-black text-white px-4 md:px-6 py-20">
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold text-purple-500 mb-4">Your Dashboard</h1>
+        <h1 className="text-3xl font-bold text-purple-500 mb-2">Your Dashboard</h1>
         <p className="text-gray-400 mb-8">
-          Welcome back {isConnected ? <span className="text-green-400">{address}</span> : 'degen'}.
+          Welcome back{' '}
+          {isConnected ? (
+            <span className="text-green-400 font-mono">{address}</span>
+          ) : (
+            <span className="italic text-yellow-500">degen</span>
+          )}
+          .
         </p>
 
-        <div className="bg-gray-900 p-6 rounded-xl border border-purple-600">
+        <div className="bg-gray-900 p-6 rounded-xl border border-purple-600 shadow-md">
           <h2 className="text-xl font-semibold mb-4 text-purple-400">Recent Scans</h2>
 
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-sm">
-              <thead className="text-gray-400">
+            <table className="w-full text-left text-sm border-collapse">
+              <thead className="text-gray-400 border-b border-gray-700">
                 <tr>
-                  <th className="py-2">Wallet</th>
-                  <th className="py-2">Chain</th>
-                  <th className="py-2">Risk Score</th>
-                  <th className="py-2">Scanned</th>
+                  <th className="py-2 pr-4">Wallet</th>
+                  <th className="py-2 pr-4">Chain</th>
+                  <th className="py-2 pr-4">Risk Score</th>
+                  <th className="py-2">Scanned At</th>
                 </tr>
               </thead>
               <tbody>
                 {mockHistory.map((item, idx) => (
-                  <tr key={idx} className="border-t border-gray-700">
-                    <td className="py-2">{item.wallet}</td>
-                    <td className="py-2">{item.chain}</td>
+                  <tr key={idx} className="border-t border-gray-800">
+                    <td className="py-2 pr-4 font-mono">{item.wallet}</td>
+                    <td className="py-2 pr-4">{item.chain}</td>
                     <td
-                      className={`py-2 ${
+                      className={`py-2 pr-4 font-semibold ${
                         item.score === 'High Risk' ? 'text-red-500' : 'text-green-400'
                       }`}
                     >
@@ -60,9 +66,8 @@ export default function DashboardPage() {
             </table>
           </div>
 
-          {/* Coming soon */}
           <div className="mt-6 text-sm text-gray-500">
-            More features coming: download reports, saved wallets, alert toggles...
+            🚧 More features coming soon: download reports, saved wallets, alert toggles...
           </div>
         </div>
       </div>
