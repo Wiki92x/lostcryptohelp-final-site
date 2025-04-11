@@ -17,8 +17,10 @@ export default function DeepScanPage() {
 
   const handleScan = async () => {
     if (!wallet) return;
+
     setScanning(true);
     setError(null);
+    setResult(null);
 
     try {
       const res = await fetch('/api/verify', {
@@ -33,9 +35,10 @@ export default function DeepScanPage() {
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Scan failed');
+
       setResult(data);
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err) {
+      setError(err.message || 'Something went wrong');
     } finally {
       setScanning(false);
     }
@@ -49,7 +52,7 @@ export default function DeepScanPage() {
         </h1>
 
         <div className="bg-gray-900 p-6 rounded-xl shadow-md space-y-6">
-          {/* Chain Select */}
+          {/* Chain Selection */}
           <div>
             <label className="block text-sm font-medium text-gray-300 mb-1">
               Select Chain
@@ -59,9 +62,9 @@ export default function DeepScanPage() {
               onChange={(e) => setChain(e.target.value)}
               className="w-full bg-gray-800 border border-gray-700 p-3 rounded-md focus:outline-none"
             >
-              <option value="eth">Ethereum ({fees.eth} USD)</option>
-              <option value="bsc">BSC ({fees.bsc} USD)</option>
-              <option value="tron">TRON ({fees.tron} USD)</option>
+              <option value="eth">Ethereum (${fees.eth} USD)</option>
+              <option value="bsc">Binance Smart Chain (${fees.bsc} USD)</option>
+              <option value="tron">TRON (${fees.tron} USD)</option>
             </select>
           </div>
 
@@ -88,14 +91,14 @@ export default function DeepScanPage() {
             {scanning ? 'Scanning...' : 'Start Deep Scan'}
           </button>
 
-          {/* Error */}
+          {/* Error Message */}
           {error && (
-            <div className="bg-red-500 text-white p-3 rounded-md text-sm">
+            <div className="bg-red-600 text-white p-3 rounded-md text-sm">
               {error}
             </div>
           )}
 
-          {/* Result */}
+          {/* Scan Result */}
           {result && (
             <div className="bg-gray-800 border border-purple-500 p-4 rounded-md text-sm mt-4 overflow-x-auto">
               <h2 className="font-semibold text-purple-400 mb-2">Scan Results</h2>
