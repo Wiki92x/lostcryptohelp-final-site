@@ -1,13 +1,22 @@
-// app/layout.tsx
+'use client';
+
+import './globals.css';
+import { WagmiConfig } from 'wagmi';
+import { wagmiConfig } from '@/lib/wagmiClient';
+
 export const metadata = {
   title: 'LostCryptoHelp',
-  description: 'AI-driven crypto recovery tools',
+  description: 'Secure Web3 recovery suite',
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <WagmiConfig config={wagmiConfig}>
+          {children}
+        </WagmiConfig>
+      </body>
     </html>
   );
 }
