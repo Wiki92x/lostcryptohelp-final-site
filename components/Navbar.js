@@ -1,10 +1,10 @@
-// components/Navbar.js
+'use client';
+
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useTheme } from 'next-themes';
+import ThemeSwitcher from './ThemeSwitcher'; // ✅ use this now
 
 export default function Navbar() {
-  const { theme, setTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -19,14 +19,14 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
 
-          {/* Brand Name Without Logo */}
+          {/* Brand Name */}
           <Link href="/" className="flex items-center space-x-2">
             <span className="font-semibold text-white dark:text-gray-900 text-lg">
               LostCryptoHelp
             </span>
           </Link>
 
-          {/* Navigation Links */}
+          {/* Desktop Nav */}
           <div className="hidden md:flex items-center space-x-4">
             <Link href="/deep-scan" className="text-gray-300 hover:text-white dark:text-gray-700 dark:hover:text-gray-900">
               Deep Scan
@@ -35,13 +35,8 @@ export default function Navbar() {
               About
             </Link>
 
-            {/* Theme Toggle Button */}
-            <button
-              onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-              className="p-2 rounded-lg bg-gray-800 dark:bg-gray-200"
-            >
-              {theme === 'dark' ? '🌞' : '🌙'}
-            </button>
+            {/* Sticky Theme Toggle */}
+            <ThemeSwitcher />
           </div>
 
           {/* Mobile Menu Button */}
@@ -62,17 +57,16 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu */}
+      {/* Mobile Dropdown */}
       {isMenuOpen && (
-        <div className="md:hidden">
-          <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-            <Link href="/deep-scan" className="block text-gray-300 hover:text-white dark:text-gray-700 dark:hover:text-gray-900">
-              Deep Scan
-            </Link>
-            <Link href="/about" className="block text-gray-300 hover:text-white dark:text-gray-700 dark:hover:text-gray-900">
-              About
-            </Link>
-          </div>
+        <div className="md:hidden px-4 pb-4 pt-2 space-y-2">
+          <Link href="/deep-scan" className="block text-gray-300 hover:text-white dark:text-gray-700 dark:hover:text-gray-900">
+            Deep Scan
+          </Link>
+          <Link href="/about" className="block text-gray-300 hover:text-white dark:text-gray-700 dark:hover:text-gray-900">
+            About
+          </Link>
+          <ThemeSwitcher /> {/* Optional: also show toggle in mobile */}
         </div>
       )}
     </nav>
