@@ -1,19 +1,24 @@
 'use client';
 
 import { useState } from 'react';
-import DeepScanReport from '@/components/DeepScanReport';
+
+const fees = {
+  eth: 1.5,
+  bsc: 0.5,
+  tron: 0.5,
+};
 
 export default function DeepScanPage() {
   const [wallet, setWallet] = useState('');
   const [chain, setChain] = useState('eth');
+  const [scanning, setScanning] = useState(false);
   const [result, setResult] = useState(null);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
   const handleScan = async () => {
     if (!wallet) return;
 
-    setLoading(true);
+    setScanning(true);
     setError(null);
     setResult(null);
 
@@ -31,7 +36,7 @@ export default function DeepScanPage() {
     } catch (err) {
       setError(err.message || 'Something went wrong');
     } finally {
-      setLoading(false);
+      setScanning(false);
     }
   };
 
@@ -53,9 +58,9 @@ export default function DeepScanPage() {
               onChange={(e) => setChain(e.target.value)}
               className="w-full bg-gray-800 border border-gray-700 p-3 rounded-md focus:outline-none"
             >
-              <option value="eth">Ethereum</option>
-              <option value="bsc" disabled>Binance Smart Chain (coming soon)</option>
-              <option value="tron" disabled>TRON (coming soon)</option>
+              <option value="eth">Ethereum (${fees.eth} USD)</option>
+              <option value="bsc">Binance Smart Chain (${fees.bsc} USD)</option>
+              <option value="tron">TRON (${fees.tron} USD)</option>
             </select>
           </div>
 
@@ -76,10 +81,10 @@ export default function DeepScanPage() {
           {/* Scan Button */}
           <button
             onClick={handleScan}
-            disabled={loading || !wallet}
+            disabled={scanning || !wallet}
             className="w-full bg-purple-600 hover:bg-purple-700 py-3 rounded-md font-semibold transition disabled:opacity-50"
           >
-            {loading ? 'Scanning...' : 'Start Deep Scan'}
+            {scanning ? 'Scanning...' : 'Start Deep Scan'}
           </button>
 
           {/* Error Message */}
@@ -89,8 +94,15 @@ export default function DeepScanPage() {
             </div>
           )}
 
-          {/* Scan Report */}
-          {result && <DeepScanReport result={result} />}
+          {/* Scan Result */}
+          {result && (
+            <div className="bg-gray-800 border border-purple-500 p-4 rounded-md text-sm mt-4 overflow-x-auto">
+              <h2 className="font-semibold text-purple-400 mb-2">Scan Results</h2>
+              <pre className="whitespace-pre-wrap break-words">
+                {JSON.stringify(result, null, 2)}
+              </pre>
+            </div>
+          )}
         </div>
       </div>
     </div>
