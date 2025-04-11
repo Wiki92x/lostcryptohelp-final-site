@@ -1,7 +1,6 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
 import fetch from 'node-fetch';
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
   }
@@ -12,59 +11,62 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     return res.status(400).json({ error: 'Missing wallet or chain' });
   }
 
-  let apiKey = '';
-  let explorerURL = '';
+  let apiKey;
+  let baseUrl;
 
-  // Choose correct API
-  if (chain === 'eth') {
-    apiKey = process.env.ETHERSCAN_API_KEY!;
-    explorerURL = `https://api.etherscan.io/api?module=account&action=tokentx&address=${wallet}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`;
-  } else if (chain === 'bsc') {
-    apiKey = process.env.BSCSCAN_API_KEY!;
-    explorerURL = `https://api.bscscan.com/api?module=account&action=tokentx&address=${wallet}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`;
-  } else if (chain === 'tron') {
-    return res.status(400).json({ error: 'TRON chain not yet supported in this endpoint' });
-  } else {
-    return res.status(400).json({ error: 'Unsupported chain' });
+  switch (chain.toLowerCase()) {
+    case 'eth':
+      apiKey = process.env.ETHERSCAN_API_KEY;
+      baseUrl = 'https://api.etherscan.io';
+      break;
+    case 'bsc':
+      apiKey = process.env.BSCSCAN_API_KEY;
+      baseUrl = 'https://api.bscscan.com';
+      break;
+    default:
+      return res.status(400).json({ error: 'Unsupported chain' });
   }
 
-  try {
-    const explorerRes = await fetch(explorerURL);
-    const explorerData = await explorerRes.json();
+  const apiURL = `${baseUrl}/api?module=account&action=tokentx&address=${wallet}&startblock=0&endblock=99999999&sort=desc&apikey=${apiKey}`;
 
-    if (explorerData.status !== '1') {
-      console.error('etherscan response:', explorerData);
-      return res.status(500).json({ error: 'Etherscan fetch failed', message: explorerData.result });
+  try {
+    const response = await fetch(apiURL);
+    const data = await response.json();
+
+    if (data.status !== '1') {
+      return res.status(500).json({ error: 'Etherscan fetch failed', message: data.result });
     }
 
-    const transfers = explorerData.result.slice(0, 10); // Limit for performance
+    const topTransfers = data.result.slice(0, 10);
+    const transfersWithRisk = [];
 
-    // Fetch token risk flags from GoPlus
-    const enriched = await Promise.all(transfers.map(async (tx: any) => {
-      const contract = tx.contractAddress.toLowerCase();
-      const goplusRes = await fetch(`https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=${contract}`);
-      const goplusData = await goplusRes.json();
-      const risk = goplusData?.result?.[contract] || {};
+    for (const tx of topTransfers) {
+      const tokenAddress = tx.contractAddress.toLowerCase();
+      const goPlusURL = `https://api.gopluslabs.io/api/v1/token_security/${chain === 'eth' ? '1' : '56'}?contract_addresses=${tokenAddress}`;
 
-      return {
-        tokenName: tx.tokenName,
-        tokenSymbol: tx.tokenSymbol,
-        contractAddress: tx.contractAddress,
+      const securityRes = await fetch(goPlusURL);
+      const securityData = await securityRes.json();
+      const riskData = securityData.result?.[tokenAddress] || {};
+
+      transfersWithRisk.push({
+        token: tx.tokenName,
+        symbol: tx.tokenSymbol,
         value: parseFloat(tx.value) / 10 ** parseInt(tx.tokenDecimal),
         from: tx.from,
         to: tx.to,
         hash: tx.hash,
-        risk_flags: risk,
-      };
-    }));
+        contract: tokenAddress,
+        risk_flags: riskData,
+      });
+    }
 
     return res.status(200).json({
       wallet,
       chain,
-      transfers: enriched,
+      transfers: transfersWithRisk,
     });
-  } catch (err: any) {
-    console.error('DeepScan API error:', err);
-    return res.status(500).json({ error: 'Internal server error', details: err.message });
+  } catch (err) {
+    console.error('Scan failed:', err);
+    return res.status(500).json({ error: 'Server error', details: err.message });
   }
 }
