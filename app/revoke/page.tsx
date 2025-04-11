@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useAccount } from 'wagmi';
-import { useRevoke } from '@/hooks/useRevoke'; // Make sure the hook exists!
+import useRevoke from '@/hooks/useRevoke';
+
 
 type ApprovalItem = {
   token: string;
