@@ -1,65 +1,108 @@
-// pages/api/deepscan.js
+'use client';
 
-import fetch from 'node-fetch';
+import { useState } from 'react';
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+const fees = {
+  eth: 1.5,
+  bsc: 0.5,
+  tron: 0.5,
+};
 
-  const { wallet, chain } = req.body;
+export default function DeepScanPage() {
+  const [wallet, setWallet] = useState('');
+  const [chain, setChain] = useState('eth');
+  const [scanning, setScanning] = useState(false);
+  const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState('');
 
-  if (!wallet || !chain) {
-    return res.status(400).json({ error: 'Missing wallet or chain' });
-  }
+  const handleScan = async () => {
+    if (!wallet) return;
 
-  if (chain.toLowerCase() !== 'eth') {
-    return res.status(400).json({ error: 'Only Ethereum is supported in this phase.' });
-  }
+    setScanning(true);
+    setError('');
+    setResult(null);
 
-  const ETHERSCAN_API_KEY = process.env.ETHERSCAN_API_KEY;
-
-  const url = `https://api.etherscan.io/api?module=account&action=tokentx&address=${wallet}&startblock=0&endblock=99999999&sort=desc&apikey=${ETHERSCAN_API_KEY}`;
-
-  try {
-    const txRes = await fetch(url);
-    const txData = await txRes.json();
-
-    if (txData.status !== '1') {
-      return res.status(500).json({ error: 'Etherscan fetch failed', message: txData.message });
-    }
-
-    const transfers = txData.result.slice(0, 10);
-    const enriched = [];
-
-    for (const tx of transfers) {
-      const tokenAddress = tx.contractAddress.toLowerCase();
-      const goplusUrl = `https://api.gopluslabs.io/api/v1/token_security/1?contract_addresses=${tokenAddress}`;
-
-      const goplusRes = await fetch(goplusUrl);
-      const goplusData = await goplusRes.json();
-      const riskFlags = goplusData.result?.[tokenAddress] || {};
-
-      enriched.push({
-        token: tx.tokenName,
-        symbol: tx.tokenSymbol,
-        value: parseFloat(tx.value) / 10 ** parseInt(tx.tokenDecimal),
-        from: tx.from,
-        to: tx.to,
-        hash: tx.hash,
-        contract: tokenAddress,
-        risk_flags: riskFlags,
+    try {
+      const res = await fetch('/api/deepscan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ wallet, chain }),
       });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.error || 'Scan failed');
+      }
+
+      setResult(data);
+    } catch (err: any) {
+      setError(err.message || 'Something went wrong');
+    } finally {
+      setScanning(false);
     }
+  };
 
-    return res.status(200).json({
-      wallet,
-      chain,
-      transfers: enriched,
-    });
-  } catch (err) {
-    console.error(err);
-    return res.status(500).json({ error: 'Server error', details: err.message });
-  }
+  return (
+    <div className="min-h-screen bg-black text-white px-4 py-10">
+      <div className="max-w-3xl mx-auto">
+        <h1 className="text-4xl font-bold mb-8 text-purple-500 text-center">
+          Deep Wallet Scanner
+        </h1>
+
+        <div className="bg-gray-900 p-6 rounded-xl shadow-md space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Select Chain
+            </label>
+            <select
+              value={chain}
+              onChange={(e) => setChain(e.target.value)}
+              className="w-full bg-gray-800 border border-gray-700 p-3 rounded-md focus:outline-none"
+            >
+              <option value="eth">Ethereum (${fees.eth} USD)</option>
+              <option value="bsc">Binance Smart Chain (${fees.bsc} USD)</option>
+              <option value="tron">TRON (${fees.tron} USD)</option>
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-1">
+              Wallet Address
+            </label>
+            <input
+              type="text"
+              value={wallet}
+              onChange={(e) => setWallet(e.target.value)}
+              placeholder="0x..., T..., etc."
+              className="w-full bg-gray-800 border border-gray-700 p-3 rounded-md focus:outline-none text-sm"
+            />
+          </div>
+
+          <button
+            onClick={handleScan}
+            disabled={scanning || !wallet}
+            className="w-full bg-purple-600 hover:bg-purple-700 py-3 rounded-md font-semibold transition disabled:opacity-50"
+          >
+            {scanning ? 'Scanning...' : 'Start Deep Scan'}
+          </button>
+
+          {error && (
+            <div className="bg-red-600 text-white p-3 rounded-md text-sm">
+              {error}
+            </div>
+          )}
+
+          {result && (
+            <div className="bg-gray-800 border border-purple-500 p-4 rounded-md text-sm mt-4 overflow-x-auto">
+              <h2 className="font-semibold text-purple-400 mb-2">Scan Results</h2>
+              <pre className="whitespace-pre-wrap break-words">
+                {JSON.stringify(result, null, 2)}
+              </pre>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
-
