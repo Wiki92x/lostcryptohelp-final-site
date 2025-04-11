@@ -5,7 +5,6 @@ import { useState } from 'react';
 const fees = {
   eth: 1.5,
   bsc: 0.5,
-  tron: 0.5,
 };
 
 export default function DeepScanPage() {
@@ -30,10 +29,7 @@ export default function DeepScanPage() {
       });
 
       const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || 'Scan failed');
-      }
+      if (!res.ok) throw new Error(data.error || 'Scan failed');
 
       setResult(data);
     } catch (err: any) {
@@ -52,9 +48,7 @@ export default function DeepScanPage() {
 
         <div className="bg-gray-900 p-6 rounded-xl shadow-md space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
-              Select Chain
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Select Chain</label>
             <select
               value={chain}
               onChange={(e) => setChain(e.target.value)}
@@ -62,19 +56,16 @@ export default function DeepScanPage() {
             >
               <option value="eth">Ethereum (${fees.eth} USD)</option>
               <option value="bsc">Binance Smart Chain (${fees.bsc} USD)</option>
-              <option value="tron">TRON (${fees.tron} USD)</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-1">
-              Wallet Address
-            </label>
+            <label className="block text-sm font-medium text-gray-300 mb-1">Wallet Address</label>
             <input
               type="text"
               value={wallet}
               onChange={(e) => setWallet(e.target.value)}
-              placeholder="0x..., T..., etc."
+              placeholder="0x..., etc."
               className="w-full bg-gray-800 border border-gray-700 p-3 rounded-md focus:outline-none text-sm"
             />
           </div>
@@ -88,9 +79,7 @@ export default function DeepScanPage() {
           </button>
 
           {error && (
-            <div className="bg-red-600 text-white p-3 rounded-md text-sm">
-              {error}
-            </div>
+            <div className="bg-red-600 text-white p-3 rounded-md text-sm">{error}</div>
           )}
 
           {result && (
