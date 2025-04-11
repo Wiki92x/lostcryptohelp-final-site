@@ -1,16 +1,28 @@
-// components/ReportForm.jsx
-import { useState } from 'react';
+'use client';
 
-export default function ReportForm({ txHash, chain, method }) {
-  const [formData, setFormData] = useState({ name: '', wallet: '', message: '' });
+import { useState, ChangeEvent, FormEvent } from 'react';
+
+interface ReportFormProps {
+  txHash?: string;
+  chain?: string;
+  method?: string;
+}
+
+export default function ReportForm({ txHash, chain, method }: ReportFormProps) {
+  const [formData, setFormData] = useState({
+    name: '',
+    wallet: '',
+    message: '',
+  });
+
   const [status, setStatus] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setStatus('');
@@ -28,6 +40,7 @@ export default function ReportForm({ txHash, chain, method }) {
       });
 
       const data = await res.json();
+
       if (data.success) {
         setStatus('✅ Report submitted successfully.');
         setFormData({ name: '', wallet: '', message: '' });
