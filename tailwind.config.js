@@ -1,31 +1,24 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
-    './pages/**/*.{js,ts,jsx,tsx}',
-    './components/**/*.{js,ts,jsx,tsx}',
-    './app/**/*.{js,ts,jsx,tsx}',
+    './app/**/*.{js,ts,jsx,tsx}',      // App Router pages/components
+    './pages/**/*.{js,ts,jsx,tsx}',    // (in case any pages dir)
+    './components/**/*.{js,ts,jsx,tsx}' // all your components
   ],
-  darkMode: 'class',
+  darkMode: 'class', // Enables dark mode via `class`
   theme: {
     extend: {
       colors: {
-        background: '#0f1117',     // Custom background color
-        foreground: '#ffffff',     // Custom text/foreground color
-        primary: '#8b5cf6',        // Purple-600 (used for buttons/accents)
-        muted: '#9ca3af',          // Gray-400 for secondary text
-        error: '#ef4444',          // Red-500 for errors
+        background: 'var(--background)',
+        foreground: 'var(--foreground)',
       },
-      spacing: {
-        'header': '4rem',          // Consistent header spacing
-      },
-      borderRadius: {
-        xl: '1rem',
-        '2xl': '1.25rem',
+      fontFamily: {
+        sans: ['Inter', 'ui-sans-serif', 'system-ui'],
       },
     },
   },
   plugins: [
-    require('@tailwindcss/forms'),     // Better form input styling
-    require('@tailwindcss/typography') // For rich content / scan result
+    require('@tailwindcss/forms'),
+    require('@tailwindcss/typography'),
   ],
-};
+}
