@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 
-export default function useRevoke() {
+export default function useRevoke() { ... }
   const [revoking, setRevoking] = useState(false);
   const [result, setResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
