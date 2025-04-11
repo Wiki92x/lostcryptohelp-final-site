@@ -1,6 +1,10 @@
 'use client';
 
+import ReportForm from '../components/ReportForm';
 import { useState, ChangeEvent, FormEvent } from 'react';
+
+
+
 
 interface ReportFormProps {
   txHash?: string;
